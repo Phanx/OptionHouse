@@ -4,20 +4,18 @@ local frame, scriptProfiling
 local TOTAL_ROWS = 14
 
 local function sortPerformanceList(a, b)
-	if( not b ) then
+	if not b then
 		return false
-	elseif( frame.sortOrder ) then
-		if( frame.sortType == "name" or a[frame.sortType] == b[frame.sortType] ) then
-			return ( string.lower(a.title) < string.lower(b.title) )
+	elseif frame.sortOrder then
+		if frame.sortType == "name" or a[frame.sortType] == b[frame.sortType] then
+			return strlower(a.title) < strlower(b.title)
 		end
-		
-		return ( a[frame.sortType] < b[frame.sortType] )
+		return a[frame.sortType] < b[frame.sortType]
 	else
-		if( frame.sortType == "name" or a[frame.sortType] == b[frame.sortType] ) then
-			return ( string.lower(a.title) > string.lower(b.title) )
+		if frame.sortType == "name" or a[frame.sortType] == b[frame.sortType] then
+			return strlower(a.title) > strlower(b.title)
 		end
-		
-		return ( a[frame.sortType] > b[frame.sortType] )
+		return a[frame.sortType] > b[frame.sortType]
 	end
 end
 
@@ -57,13 +55,13 @@ local function updateAddonPerformance()
 end
 
 local function updatePerformanceList()
-	if( frame.totalMemory > 1024 ) then
+	if frame.totalMemory > 1024 then
 		frame.sortButtons.memory:SetFormattedText(L["Memory (|cffffffff%.1f MiB|r)"], frame.totalMemory / 1024)
 	else
 		frame.sortButtons.memory:SetFormattedText(L["Memory (|cffffffff%.1f KiB|r)"], frame.totalMemory)
 	end
 
-	if( frame.totalMIR > 1024 ) then
+	if frame.totalMIR > 1024 then
 		frame.sortButtons.memsec:SetFormattedText(L["Mem/Sec (|cffffffff%.2f MiB/s|r)"], frame.totalMIR / 1024)
 	else
 		frame.sortButtons.memsec:SetFormattedText(L["Mem/Sec (|cffffffff%.2f KiB/s|r)"], frame.totalMIR)
@@ -72,50 +70,49 @@ local function updatePerformanceList()
 	frame.sortButtons.memory:SetWidth(frame.sortButtons.memory:GetFontString():GetStringWidth() + 3)
 	frame.sortButtons.memsec:SetWidth(frame.sortButtons.memsec:GetFontString():GetStringWidth() + 3)
 
-	if( scriptProfiling ) then
-		if( frame.totalCPU > 999999 ) then
+	if scriptProfiling then
+		if frame.totalCPU > 999999 then
 			frame.sortButtons.cpu:SetFormattedText(L["CPU (|cffffffff%.2fm|r)"], frame.totalCPU / 1000000)
-		elseif( frame.totalCPU > 9999 ) then
+		elseif frame.totalCPU > 9999 then
 			frame.sortButtons.cpu:SetFormattedText(L["CPU (|cffffffff%.2fk|r)"], frame.totalCPU / 1000)
 		else
 			frame.sortButtons.cpu:SetFormattedText(L["CPU (|cffffffff%d|r)"], frame.totalCPU)
 		end
-		
+
 		frame.sortButtons.cpusec:SetFormattedText(L["CPU/Sec (|cffffffff%.2f|r)"], frame.totalCIR)
 
 		frame.sortButtons.cpu:SetWidth(frame.sortButtons.cpu:GetFontString():GetStringWidth() + 3)
 		frame.sortButtons.cpusec:SetWidth(frame.sortButtons.cpusec:GetFontString():GetStringWidth() + 3)
 	end
 
-	table.sort(frame.addons, sortPerformanceList)
+	sort(frame.addons, sortPerformanceList)
 	OptionHouse:UpdateScroll(frame.scroll, #(frame.addons))
 
 	for id, row in pairs(frame.rows) do
 		local addon = frame.addons[frame.scroll.offset + id]
-
-		if( addon ) then
+		if addon then
 			row.title:SetText(addon.title)
 
-			if( addon.memory > 1024 ) then
+			if addon.memory > 1024 then
 				row.memory:SetFormattedText(L["%.3f MiB (%.2f%%)"], addon.memory / 1024, addon.memPerct)
 			else
 				row.memory:SetFormattedText(L["%.3f KiB (%.2f%%)"], addon.memory, addon.memPerct)
 			end
 
-			if( addon.mir > 1024 ) then
+			if addon.mir > 1024 then
 				row.memsec:SetFormattedText(L["%.3f MiB/s"], addon.mir / 1024)
 			else
 				row.memsec:SetFormattedText(L["%.3f KiB/s"], addon.mir)
 			end
 
-			if( scriptProfiling ) then
+			if scriptProfiling then
 				row.cpu:SetFormattedText("%.3f (%.2f%%)", addon.cpu, addon.cpuPerct)
 				row.cpusec:SetFormattedText("%.3f", addon.cir)
 			else
 				row.cpu:SetText("----")
 				row.cpusec:SetText("----")
 			end
-		
+
 			row:Show()
 		else
 			row:Hide()
@@ -126,24 +123,21 @@ end
 local elapsed = 0
 local function performanceOnUpdate(self, time)
 	elapsed = elapsed + time
-
-	if( elapsed >= 1 ) then
+	if elapsed >= 1 then
 		elapsed = 0
-
 		updateAddonPerformance()
 		updatePerformanceList()
 	end
 end
 
 local function sortPerfClick(self)
-	if( self.sortType ) then
-		if( self.sortType ~= frame.sortType ) then
+	if self.sortType then
+		if self.sortType ~= frame.sortType then
 			frame.sortOrder = false
 			frame.sortType = self.sortType
 		else
 			frame.sortOrder = not frame.sortOrder
 		end
-
 		updatePerformanceList()
 	end
 end
@@ -153,28 +147,35 @@ local function updateAddonPerfList()
 	UpdateAddOnMemoryUsage()
 	UpdateAddOnCPUUsage()
 
-	local searchBy = string.trim(string.lower(frame.search:GetText()))
-	if( searchBy == "" or frame.search.searchText ) then
+	local searchBy = string.trim(strlower(frame.search:GetText()))
+	if searchBy == "" or frame.search.searchText then
 		searchBy = nil
 	end
-	
+
 	frame.addons = {}
-	for i=1, GetNumAddOns() do
+	for i = 1, GetNumAddOns() do
 		local name, title = GetAddOnInfo(i)
-		if( IsAddOnLoaded(i) and ((searchBy and string.find(string.lower(name), searchBy)) or not searchBy ) ) then
-			table.insert(frame.addons, {name = name, title = string.gsub(title, "%|cff7fff7f %-(.+)%-%|r", ""), mir = 0, cir = 0, cpu = GetAddOnCPUUsage(i), memory = GetAddOnMemoryUsage(i)})
+		if IsAddOnLoaded(i) and ((searchBy and strfind(strlower(name), searchBy)) or not searchBy ) then
+			tinsert(frame.addons, {
+				name = name,
+				title = gsub(title, "%|cff7fff7f %-(.+)%-%|r", ""),
+				mir = 0,
+				cir = 0,
+				cpu = GetAddOnCPUUsage(i),
+				memory = GetAddOnMemoryUsage(i)
+			})
 		end
 	end
 end
 
 local function createRows()
 	frame.rows = {}
-	
-	for id=1, TOTAL_ROWS do
+
+	for id = 1, TOTAL_ROWS do
 		local row = CreateFrame("Frame", nil, frame)
 		row:SetHeight(22)
 		row:SetWidth(1)
-		
+
 		row.title = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 		row.title:SetHeight(20)
 		row.title:SetWidth(175)
@@ -209,8 +210,8 @@ local function createRows()
 		row.cpusec:SetJustifyH("LEFT")
 		row.cpusec:SetJustifyV("CENTER")
 		row.cpusec:SetPoint("LEFT", row.cpu, "RIGHT", 3, 0)
-   
-		if( id > 1 ) then
+
+		if id > 1 then
 			row:ClearAllPoints()
 			row:SetPoint("TOPLEFT", frame.rows[id - 1], "BOTTOMLEFT", 0, 0)
 			row:SetPoint("TOPRIGHT", frame.rows[id - 1], "BOTTOMRIGHT", 0, 0)
@@ -219,14 +220,14 @@ local function createRows()
 			row:SetPoint("TOPLEFT", frame, "TOPLEFT", 24, -96)
 			row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -46, 0)
 		end
-		
+
 		frame.rows[id] = row
 	end
 end
 
 local function createPerfFrame(hide)
-	if( frame ) then
-		if( hide ) then
+	if frame then
+		if hide then
 			frame:Hide()
 		else
 			frame:Show()
@@ -259,7 +260,7 @@ local function createPerfFrame(hide)
 	toggleCPU:SetHeight(22)
 	toggleCPU:SetPoint("BOTTOMRIGHT", OptionHouse.frame, "BOTTOMRIGHT", -8, 14)
 	toggleCPU:SetScript("OnClick", function(self)
-		if( GetCVar("scriptProfile") == "1" ) then
+		if GetCVar("scriptProfile") == "1" then
 			self:SetText(L["Enable CPU"])
 			SetCVar("scriptProfile", "0")
 		else
@@ -269,7 +270,7 @@ local function createPerfFrame(hide)
 	end)
 
 	-- UI Reload required for CPU profiling to be usable, so check on load
-	if( GetCVar("scriptProfile") == "1" ) then
+	if GetCVar("scriptProfile") == "1" then
 		scriptProfiling = true
 		toggleCPU:SetText(L["Disable CPU"])
 	else
