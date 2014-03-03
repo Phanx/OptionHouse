@@ -3,19 +3,24 @@ local L = OptionHouseLocals
 local frame, scriptProfiling
 local TOTAL_ROWS = 14
 
+local gsub, pairs, sort, strfind, strlower, tinsert
+    = gsub, pairs, sort, strfind, strlower, tinsert
+
 local function sortPerformanceList(a, b)
 	if not b then
 		return false
 	elseif frame.sortOrder then
-		if frame.sortType == "name" or a[frame.sortType] == b[frame.sortType] then
+		local sortType = frame.sortType
+		if sortType == "name" or a[sortType] == b[sortType] then
 			return strlower(a.title) < strlower(b.title)
 		end
-		return a[frame.sortType] < b[frame.sortType]
+		return a[sortType] < b[sortType]
 	else
-		if frame.sortType == "name" or a[frame.sortType] == b[frame.sortType] then
+		local sortType = frame.sortType
+		if sortType == "name" or a[sortType] == b[sortType] then
 			return strlower(a.title) > strlower(b.title)
 		end
-		return a[frame.sortType] > b[frame.sortType]
+		return a[sortType] > b[sortType]
 	end
 end
 
