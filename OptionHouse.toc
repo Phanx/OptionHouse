@@ -8,6 +8,7 @@
 ## SavedVariables: OptionHouseProfiles
 
 localization.enUS.lua
+localization.deDE.lua
 localization.esMX.lua
 localization.ruRU.lua
 localization.zhCN.lua
