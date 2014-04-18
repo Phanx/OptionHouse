@@ -1,5 +1,5 @@
 ## Interface: 50400
-## Title: Option House
+## Title: Option House |cff00ddbaMOD|r
 ## Notes: Addon control panel and performance monitor
 ## Author: Shadowed
 ## LoadManagers: AddonLoader
