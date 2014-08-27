@@ -7,7 +7,6 @@
 ## X-LoadOn-Execute: GameMenuFrame:HookScript("OnShow", function() if( not OptionHouse ) then AddonLoader:LoadAddOn("OptionHouse") end end)
 ## SavedVariables: OptionHouseProfiles
 
-localization.enUS.lua
 localization.deDE.lua
 localization.esMX.lua
 localization.ruRU.lua

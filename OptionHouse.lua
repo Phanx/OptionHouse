@@ -4,9 +4,14 @@
 	Thanks Tekkub and Cladhaire for the original idea and some of the code... which I mutilated shortly thereafter!
 ]]
 
-OptionHouse = {}
+local OPTIONHOUSE, L = ...
+setmetatable(L, { __index = function(t, k)
+	local v = tostring(k)
+	t[k] = v
+	return v
+end })
 
-local L = OptionHouseLocals
+OptionHouse = {}
 local tabFunctions = {}
 local openedByMenu
 
@@ -495,10 +500,16 @@ function OptionHouse:Open(id)
 	ShowUIPanel(self.frame)
 end
 
--- Make sure it hasn't been created already.
-if not GameMenuButtonOptionHouse then
+if GameMenuButtonAddons then -- WoD
+	GameMenuButtonAddons:SetScript("OnClick", function()
+		openedByMenu = true
+		PlaySound("igMainMenuOption")
+		HideUIPanel(GameMenuFrame)
+		OptionHouse:Open()
+	end)
+else
 	local menuButton = CreateFrame("Button", "GameMenuButtonOptionHouse", GameMenuFrame, "GameMenuButtonTemplate")
-	menuButton:SetText(L["Option House"])
+	menuButton:SetText(ADDONS)
 	menuButton:SetScript("OnClick", function()
 		openedByMenu = true
 		PlaySound("igMainMenuOption")
@@ -515,12 +526,6 @@ if not GameMenuButtonOptionHouse then
 end
 
 -- Slash commands
-SLASH_OPTHOUSE1 = nil
-SlashCmdList["OPTHOUSE"] = nil
-
-SLASH_OH1 = nil
-SlashCmdList["OH"] = nil
-
 SLASH_OPTIONHOUSE1 = "/opthouse"
 SLASH_OPTIONHOUSE2 = "/optionhouse"
 SLASH_OPTIONHOUSE3 = "/oh"

@@ -1,5 +1,5 @@
 local Performance = {}
-local L = OptionHouseLocals
+local OPTIONHOUSE, L = ...
 local frame, scriptProfiling
 local TOTAL_ROWS = 14
 
