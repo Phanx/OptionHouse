@@ -623,7 +623,7 @@ local function createManageFrame(hide)
 
 	--[[ Toggle addons globally or per-character
 	local drop = CreateFrame("Frame", "$parentCharacter", frame, "UIDropDownMenuTemplate")
-	drop:SetPoint("TOPLEFT", 100, -50)
+	drop:SetPoint("TOPLEFT", 110, -40)
 	do
 		local menuFunc = func(self)
 			toggleGlobally = self.value
@@ -637,7 +637,7 @@ local function createManageFrame(hide)
 			info.value = true
 			info.selected = toggleGlobally == true
 			UIDropDownMenu_AddButton(info)
-			
+
 			info.text = UnitName("player")
 			info.value = false
 			info.selected = toggleGlobally == false
@@ -647,12 +647,20 @@ local function createManageFrame(hide)
 		UIDropDownMenu_SetSelectedValue(drop, toggleGlobally)
 	end]]
 
+	-- Backwards compat for MOP
+	local IsAddonVersionCheckEnabled = IsAddonVersionCheckEnabled
+	if not IsAddonVersionCheckEnabled then
+		IsAddonVersionCheckEnabled = function()
+			return not GetCVarBool("checkAddonVersion")
+		end
+	end
+
 	-- Load out of date addons
 	local forceLoad = CreateFrame("CheckButton", "$parentForceLoad", frame, "OptionsCheckButtonTemplate")
 	forceLoad:SetWidth(22)
 	forceLoad:SetHeight(22)
-	forceLoad:SetHitRectInsets(-215, 0, 0, 0)
-	forceLoad:SetPoint("TOPRIGHT", frame, -10, -40)
+	forceLoad:SetHitRectInsets(-200, 0, 0, 0)
+	forceLoad:SetPoint("TOPRIGHT", frame, -10, -45)
 	forceLoad:SetChecked(not IsAddonVersionCheckEnabled())
 	forceLoad:SetScript("OnClick", function(self)
 		local on = self:GetChecked()
@@ -662,15 +670,14 @@ local function createManageFrame(hide)
 	end)
 
 	forceLoad.label = forceLoad:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	forceLoad.label:SetWidth(190)
 	forceLoad.label:SetHeight(20)
 	forceLoad.label:SetJustifyH("LEFT")
 	forceLoad.label:SetJustifyV("CENTER")
-	forceLoad.label:SetPoint("RIGHT", forceLoad, "LEFT", 15, 0)
+	forceLoad.label:SetPoint("RIGHT", forceLoad, "LEFT", 0, 0)
 	forceLoad.label:SetNonSpaceWrap(false)
 
 	forceLoad:SetFontString(forceLoad.label)
-	forceLoad:SetText(ADDON_FORCE_LOAD)
+	forceLoad:SetText(ADDON_FORCE_LOAD or "Load out of date AddOns") -- don't bother localizing pre-WOD
 
 	-- Sorting headers
 	local button = CreateFrame("Button", nil, frame)
@@ -727,14 +734,13 @@ local function createManageFrame(hide)
 	local showBlizz = CreateFrame("CheckButton", nil, frame, "OptionsCheckButtonTemplate")
 	showBlizz:SetWidth(22)
 	showBlizz:SetHeight(22)
-	showBlizz:SetHitRectInsets(0, -215, 0, 0)
+	showBlizz:SetHitRectInsets(0, -200, 0, 0)
 	showBlizz:SetPoint("LEFT", frame.search, "RIGHT", 4, 0)
 	showBlizz:SetScript("OnClick", function(self)
 		updateManageList()
 	end)
 
 	showBlizz.label = showBlizz:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	showBlizz.label:SetWidth(190)
 	showBlizz.label:SetHeight(20)
 	showBlizz.label:SetJustifyH("LEFT")
 	showBlizz.label:SetJustifyV("CENTER")
@@ -748,7 +754,7 @@ local function createManageFrame(hide)
 
 	-- Misc status button things on the bottom right
 	local disableAll = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	disableAll:SetWidth(80)
+	disableAll:SetWidth(120)
 	disableAll:SetHeight(22)
 	disableAll:SetPoint("BOTTOMRIGHT", OptionHouse.frame, "BOTTOMRIGHT", -8, 14)
 	disableAll:SetText(L["Disable All"])
@@ -761,7 +767,7 @@ local function createManageFrame(hide)
 	end)
 
 	local enableAll = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	enableAll:SetWidth(80)
+	enableAll:SetWidth(120)
 	enableAll:SetHeight(22)
 	enableAll:SetPoint("RIGHT", disableAll, "LEFT")
 	enableAll:SetText(L["Enable All"])
@@ -772,7 +778,7 @@ local function createManageFrame(hide)
 	end)
 
 	local reloadUI = CreateFrame("Button", nil, frame, "UIPanelButtonGrayTemplate")
-	reloadUI:SetWidth(80)
+	reloadUI:SetWidth(120)
 	reloadUI:SetHeight(22)
 	reloadUI:SetPoint("RIGHT", enableAll, "LEFT")
 	reloadUI:SetText(L["Reload UI"])
@@ -783,7 +789,7 @@ local function createManageFrame(hide)
 	local profile = CreateFrame("Frame", "OptionHouseProfileDropdown", frame, "UIDropDownMenuTemplate")
 	profile.text = _G[profile:GetName().."Text"]
 	profile.text:SetText(L["Profiles"])
-	profile:SetPoint("RIGHT", reloadUI, "LEFT", -110, 0)
+	profile:SetPoint("TOPLEFT", 110, -40)
 	profile.initialize = function(self, level)
 		wipe(info)
 

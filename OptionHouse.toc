@@ -4,7 +4,7 @@
 ## Author: Shadowed
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Slash: /oh, /opthouse, /optionhouse
-## X-LoadOn-Execute: GameMenuFrame:HookScript("OnShow", function() if( not OptionHouse ) then AddonLoader:LoadAddOn("OptionHouse") end end)
+## X-LoadOn-Execute: GameMenuFrame:HookScript("OnShow", function() if not OptionHouse then AddonLoader:LoadAddOn("OptionHouse") end end)
 ## SavedVariables: OptionHouseProfiles
 
 localization.deDE.lua
