@@ -174,7 +174,8 @@ updateManageList = function()
 					row.reason:SetText(addon.reason)
 				end
 
-				row.enabled.text = addon.tooltip
+				row.enabled.tooltip = addon.tooltip
+				row.enabled.title = addon.title
 				row.enabled.addon = addon.name
 				row.enabled:SetChecked(addon.isEnabled)
 				row:Show()
@@ -264,7 +265,7 @@ local function saveAddonData(id, skipCheck, isBlizzard)
 		elseif not strmatch(title, "Blizzard") then
 			title = "Blizzard " .. title
 		end
-	elseif strmatch(name, "^Lib[%u%W]") then
+	elseif strmatch(name, "^Lib[%u%W]") or strmatch(title, "^Lib[%u%W]") then
 		isLibrary = true
 	end
 
@@ -332,18 +333,19 @@ local function saveAddonData(id, skipCheck, isBlizzard)
 	end
 
 	-- Strip out colors and tags like -Ace2- as it just wastes space
-	title = (title or name):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("%-(.+)%-%", "")
+	if not title then
+		title = name
+	else
+		title = title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("%-(.+)%-", "")
+	end
 
 	-- Create the tooltip
-	local tooltip = "|cffffffff" .. title .. "|r"
-	if author then
-		tooltip = tooltip .. "\n" .. format(L["|cffd8d8d8Author:|r %s"], author)
-	end
+	local tooltip = notes
 	if version then
-		tooltip = tooltip .. "\n" .. format(L["|cffd8d8d8Version:|r %s"], version)
+		tooltip = tooltip and format(L["|cffffffffVersion:|r %s\n%s"], version, tooltip) or format(L["|cffffffffVersion:|r %s"], version)
 	end
-	if notes then
-		tooltip = tooltip .. "\n" .. format(L["|cffd8d8d8Notes:|r %s"], notes)
+	if author then
+		tooltip = tooltip and format(L["|cffffffffAuthor:|r %s\n%s"], author, tooltip) or format(L["|cffffffffAuthor:|r %s"], author)
 	end
 
 	-- Figure out the addon status and cache it
@@ -529,9 +531,11 @@ local function toggleAddonStatus(self)
 end
 
 local function showTooltip(self)
-	if self.text then
+	if self.tooltip then
 		GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT", 230)
-		GameTooltip:SetText(self.text, nil, nil, nil, nil, 1)
+		GameTooltip:SetText(self.title, 1, 1, 1)
+		GameTooltip:AddLine(self.tooltip, nil, nil, nil, 1)
+		GameTooltip:Show()
 	end
 end
 
