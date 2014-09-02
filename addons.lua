@@ -3,7 +3,8 @@ local OPTIONHOUSE, L = ...
 local TOTAL_ROWS = 14
 
 local Manage = {}
-local dependencies, addons, addonStatus, toggleGlobally, frame = {}, {}, {}, false
+local dependencies, addons, addonStatus = {}, {}, {}
+local frame, showBlizzard, toggleGlobally
 
 OptionHouseProfiles = {}
 
@@ -137,12 +138,10 @@ updateManageList = function()
 		searchBy = nil
 	end
 
-	local hideBlizz = not frame.showBlizz:GetChecked()
-
 	-- We could reduce all of this into one or two if statements, but this way is saner
 	-- and far easier for people to debug
 	for id, addon in pairs(addons) do
-		if hideBlizz and addon.isBlizzard then
+		if addon.isBlizzard and not showBlizzard then
 			addons[id].hide = true
 		elseif searchBy and not strfind(strlower(addon.title), searchBy) then
 			addons[id].hide = true
@@ -432,16 +431,19 @@ local function activateAddon(addon, useDeps)
 	updateManageList()
 end
 
+local function deactivateAddon(addon)
+	DisableAddOn(addon, toggleGlobally)
+	saveAddonData(addon)
+	updateManageList()
+end
+
 -- Toggle addon on
 local function toggleAddonStatus(self)
 	-- Addons disabled
 	local _, _, _, enabled = GetAddOnInfo(self.addon)
 	if enabled then
 		PlaySound("igMainMenuOptionCheckBoxOff")
-		DisableAddOn(self.addon, toggleGlobally)
-		saveAddonData(self.addon)
-		updateManageList()
-		return
+		return deactivateAddon(self.addon)
 	end
 
 	PlaySound("igMainMenuOptionCheckBoxOn")
@@ -625,64 +627,6 @@ local function createManageFrame(hide)
 		updateManageList()
 	end)
 
-	--[[ Toggle addons globally or per-character
-	local drop = CreateFrame("Frame", "$parentCharacter", frame, "UIDropDownMenuTemplate")
-	drop:SetPoint("TOPLEFT", 110, -40)
-	do
-		local menuFunc = func(self)
-			toggleGlobally = self.value
-			updateManageList()
-		end
-		local initMenu = function()
-			local info = UIDropDownMenu_CreateInfo()
-			info.func = menuFunc
-
-			info.text = ALL
-			info.value = true
-			info.selected = toggleGlobally == true
-			UIDropDownMenu_AddButton(info)
-
-			info.text = UnitName("player")
-			info.value = false
-			info.selected = toggleGlobally == false
-			UIDropDownMenu_AddButton(info)
-		end
-		UIDropDownMenu_Initialize(drop, initMenu)
-		UIDropDownMenu_SetSelectedValue(drop, toggleGlobally)
-	end]]
-
-	-- Backwards compat for MOP
-	local IsAddonVersionCheckEnabled = IsAddonVersionCheckEnabled
-	if not IsAddonVersionCheckEnabled then
-		IsAddonVersionCheckEnabled = function()
-			return not GetCVarBool("checkAddonVersion")
-		end
-	end
-
-	-- Load out of date addons
-	local forceLoad = CreateFrame("CheckButton", "$parentForceLoad", frame, "OptionsCheckButtonTemplate")
-	forceLoad:SetWidth(22)
-	forceLoad:SetHeight(22)
-	forceLoad:SetHitRectInsets(-200, 0, 0, 0)
-	forceLoad:SetPoint("TOPRIGHT", frame, -10, -45)
-	forceLoad:SetChecked(not IsAddonVersionCheckEnabled())
-	forceLoad:SetScript("OnClick", function(self)
-		local on = self:GetChecked()
-		PlaySound(on and "igMainMenuOptionCheckBoxOn" or "igMainMenuOptionCheckBoxOff")
-		SetAddonVersionCheck(on)
-		updateManageList()
-	end)
-
-	forceLoad.label = forceLoad:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	forceLoad.label:SetHeight(20)
-	forceLoad.label:SetJustifyH("LEFT")
-	forceLoad.label:SetJustifyV("CENTER")
-	forceLoad.label:SetPoint("RIGHT", forceLoad, "LEFT", 0, 0)
-	forceLoad.label:SetNonSpaceWrap(false)
-
-	forceLoad:SetFontString(forceLoad.label)
-	forceLoad:SetText(ADDON_FORCE_LOAD or "Load out of date AddOns") -- don't bother localizing pre-WOD
-
 	-- Sorting headers
 	local button = CreateFrame("Button", nil, frame)
 	button:SetScript("OnClick", sortManageClick)
@@ -734,28 +678,6 @@ local function createManageFrame(hide)
 	-- Creates the search input in the bottom left of the screen
 	OptionHouse:CreateSearchInput(frame, updateManageList)
 
-	-- Filter out Blizzard addons
-	local showBlizz = CreateFrame("CheckButton", nil, frame, "OptionsCheckButtonTemplate")
-	showBlizz:SetWidth(22)
-	showBlizz:SetHeight(22)
-	showBlizz:SetHitRectInsets(0, -200, 0, 0)
-	showBlizz:SetPoint("LEFT", frame.search, "RIGHT", 4, 0)
-	showBlizz:SetScript("OnClick", function(self)
-		updateManageList()
-	end)
-
-	showBlizz.label = showBlizz:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	showBlizz.label:SetHeight(20)
-	showBlizz.label:SetJustifyH("LEFT")
-	showBlizz.label:SetJustifyV("CENTER")
-	showBlizz.label:SetPoint("LEFT", showBlizz, "RIGHT", 0, 0)
-	showBlizz.label:SetNonSpaceWrap(false)
-
-	showBlizz:SetFontString(showBlizz.label)
-	showBlizz:SetText(L["Show Blizzard AddOns"])
-
-	frame.showBlizz = showBlizz
-
 	-- Misc status button things on the bottom right
 	local disableAll = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 	disableAll:SetWidth(120)
@@ -788,29 +710,223 @@ local function createManageFrame(hide)
 	reloadUI:SetText(L["Reload UI"])
 	reloadUI:SetScript("OnClick", ReloadUI)
 
-	local info = {}
+	-- Show Blizzard addons
+	local showBlizz = CreateFrame("CheckButton", "$parentShowBlizz", frame, "InterfaceOptionsCheckButtonTemplate")
+	showBlizz:SetPoint("LEFT", frame.search, "RIGHT", 4, 0)
+	showBlizz.Text:SetText(L["Show Blizzard AddOns"])
+	showBlizz:SetHitRectInsets(0, -200, 0, 0)
+	showBlizz:SetScript("OnClick", function(self)
+		showBlizzard = not not self:GetChecked() -- #TODO: won't need casting in WOD
+		updateManageList()
+	end)
 
-	local profile = CreateFrame("Frame", "OptionHouseProfileDropdown", frame, "UIDropDownMenuTemplate")
-	profile.text = _G[profile:GetName().."Text"]
-	profile.text:SetText(L["Profiles"])
-	profile:SetPoint("TOPLEFT", 110, -40)
-	profile.initialize = function(self, level)
-		wipe(info)
+	-- Backwards compat for MOP
+	if not IsAddonVersionCheckEnabled then
+		ADDON_FORCE_LOAD = GetLocale() == "deDE" and "Veralteten AddOns aktivieren"
+			or GetLocale() == "esES" or GetLocale() == "esMX" and "AddOns viejos activar"
+			or "Load out of date AddOns"
+		function IsAddonVersionCheckEnabled()
+			return not GetCVarBool("checkAddonVersion")
+		end
+	end
 
-		if level == 1 then
-			local profiles = {}
-			for name in pairs(OptionHouseProfiles) do
-				tinsert(profiles, name)
+	-- Load out of date addons
+	local forceLoad = CreateFrame("CheckButton", "$parentForceLoad", frame, "InterfaceOptionsCheckButtonTemplate")
+	forceLoad.Text:SetPoint("TOPRIGHT", frame, -10, -45)
+	forceLoad:SetText(ADDON_FORCE_LOAD)
+	forceLoad:SetHitRectInsets(-200, 0, 0, 0)
+	forceLoad:SetChecked(not IsAddonVersionCheckEnabled())
+	forceLoad:SetScript("OnClick", function(self)
+		local on = self:GetChecked()
+		PlaySound(on and "igMainMenuOptionCheckBoxOn" or "igMainMenuOptionCheckBoxOff")
+		SetAddonVersionCheck(on)
+		updateManageList()
+	end)
+
+	-- Toggle addons globally or per-character
+	local drop = CreateFrame("Frame", "$parentCharacter", frame, "UIDropDownMenuTemplate")
+	drop:SetPoint("TOPLEFT", 110, -40)
+	drop.func = function(self)
+		toggleGlobally = self.value
+		updateManageList()
+	end
+	local initMenu = function()
+		local info = UIDropDownMenu_CreateInfo()
+		info.func = drop.func
+
+		info.text = ALL
+		info.value = true
+		info.selected = toggleGlobally == true
+		UIDropDownMenu_AddButton(info)
+
+		info.text = UnitName("player")
+		info.value = false
+		info.selected = toggleGlobally == false
+		UIDropDownMenu_AddButton(info)
+	end
+	UIDropDownMenu_Initialize(drop, initMenu)
+	UIDropDownMenu_SetSelectedValue(drop, toggleGlobally)
+
+	-- Profiles
+	local profile = CreateFrame("Frame", "$parentProfile", frame, "UIDropDownMenuTemplate")
+	profile:SetPoint("LEFT", drop, "RIGHT", 10, 0)
+	_G[profile:GetName().."Text"]:SetText(L["Profiles"])
+
+	profile.NewProfile = function()
+		if not StaticPopupDialogs["OPTIONHOUSE_NEW_PROFILE"] then
+			StaticPopupDialogs["OPTIONHOUSE_NEW_PROFILE"] = {
+				text = L["Enter a name for the new profile:"],
+				button1 = ACCEPT,
+				button2 = CANCEL,
+				exclusive = 1,
+				hasEditBox = 1,
+				hideOnEscape = 1,
+				maxLetters = 24,
+				timeout = 0,
+				whileDead = 1,
+				OnAccept = function(self)
+					local name = strtrim(self.editBox:GetText() or "")
+					if strlen(name) == 0 then
+						name = L["New profile"]
+					end
+					if OptionHouseProfiles[name] then
+						local i = 1
+						local new = name .. " " .. i
+						while OptionHouseProfiles[name] do
+							i = i + 1
+							new = name .. " " .. i
+						end
+						name = new
+					end
+					local saved = {}
+					for _, data in pairs(addons) do
+						if data.isEnabled then
+							saved[data.name] = true
+						end
+					end
+					OptionHouseProfiles[name] = saved
+					print(format(L["Created new profile: %s"], name))
+				end,
+				EditBoxOnEnterPressed = function(self)
+					self:GetParent().button1:Click()
+				end,
+				OnShow = function(self)
+					self.editBox:SetFocus()
+				end,
+				OnHide = function(self)
+					ChatEdit_FocusActiveWindow()
+					self.editBox:SetText("")
+				end,
+			}
+		end
+		CloseDropDownMenus()
+		StaticPopup_Show("OPTIONHOUSE_NEW_PROFILE")
+	end
+
+	profile.LoadProfile = function()
+		local name = UIDROPDOWNMENU_MENU_VALUE
+		if name then
+			local saved = OptionHouseProfiles[name]
+			for _, data in pairs(addons) do
+				if saved[data.name] and not data.isEnabled then
+					activateAddOn(data.name, true)
+				elseif data.isEnabled and not saved[data.name] then
+					deactivateAddOn(data.name)
+				end
 			end
-			sort(profiles)
+			print(format(L["Loaded profile: %s"], name))
+		end
+		CloseDropDownMenus()
+	end
+
+	profile.SaveProfile = function()
+		-- save the currently selected addons to this profile
+		local name = UIDROPDOWNMENU_MENU_VALUE
+		local saved = OptionHouseProfiles[name]
+		wipe(saved)
+		for _, data in pairs(addons) do
+			if data.isEnabled then
+				saved[data.name] = true
+			end
+		end
+		print(format(L["Saved profile: %s"], name))
+		CloseDropDownMenus()
+	end
+
+	profile.RenameProfile = function()
+		-- rename this profile
+		if not StaticPopupDialogs["OPTIONHOUSE_RENAME_PROFILE"] then
+			StaticPopupDialogs["OPTIONHOUSE_RENAME_PROFILE"] = {
+				text = L["Enter a new name for this profile:"],
+				button1 = ACCEPT,
+				button2 = CANCEL,
+				exclusive = 1,
+				hasEditBox = 1,
+				hideOnEscape = 1,
+				maxLetters = 24,
+				timeout = 0,
+				whileDead = 1,
+				OnAccept = function(self)
+					local newName = strtrim(self.editBox:GetText() or "")
+					if strlen(newName) == 0 then
+						newName = L["New profile"]
+					end
+					if OptionHouseProfiles[newName] then
+						local i = 1
+						local newtext = newName .. " " .. i
+						while OptionHouseProfiles[newName] do
+							i = i + 1
+							newtext = newName .. " " .. i
+						end
+						newName = newtext
+					end
+					OptionHouseProfiles[newName] = OptionHouseProfiles[self.data]
+					OptionHouseProfiles[self.data] = nil
+					print(format(L["Renamed profile from %s to %s."], self.data, newName))
+				end,
+				EditBoxOnEnterPressed = function(self)
+					self:GetParent().button1:Click()
+				end,
+				OnShow = function(self)
+					self.editBox:SetText(self.data)
+					self.editBox:SetFocus()
+					self.editBox:HighlightText(0)
+				end,
+				OnHide = function(self)
+					ChatEdit_FocusActiveWindow()
+					self.editBox:SetText("")
+					self.data = nil
+				end,
+			}
+		end
+		CloseDropDownMenus()
+		StaticPopup_Show("OPTIONHOUSE_RENAME_PROFILE", nil, nil, UIDROPDOWNMENU_MENU_VALUE)
+	end
+
+	profile.DeleteProfile = function()
+		-- remove this profile
+		local name = UIDROPDOWNMENU_MENU_VALUE
+		OptionHouseProfiles[name] = nil
+		print(format(L["Deleted profile: %s"], name))
+		CloseDropDownMenus()
+	end
+
+	profile.initialize = function(self, level)
+		local info = UIDropDownMenu_CreateInfo()
+		if level == 1 then
+			local list = {}
+			for name in pairs(OptionHouseProfiles) do
+				tinsert(list, name)
+			end
+			sort(list)
 
 			info.hasArrow = 1
 			info.keepShownOnClick = 1
 			info.notCheckable = 1
 
-			for i = 1, #profiles do
-				info.text = profiles[i]
-				info.value = profiles[i]
+			for i = 1, #list do
+				info.text = list[i]
+				info.value = list[i]
 				UIDropDownMenu_AddButton(info, level)
 			end
 
@@ -819,63 +935,13 @@ local function createManageFrame(hide)
 			info.keepShownOnClick = nil
 
 			info.text = L["New"]
-			info.func = function()
-				if not StaticPopupDialogs["OPTIONHOUSE_NEW_PROFILE"] then
-					StaticPopupDialogs["OPTIONHOUSE_NEW_PROFILE"] = {
-						text = L["Enter a name for the new profile:"],
-						button1 = ACCEPT,
-						button2 = CANCEL,
-						exclusive = 1,
-						hasEditBox = 1,
-						hideOnEscape = 1,
-						maxLetters = 24,
-						timeout = 0,
-						whileDead = 1,
-						OnAccept = function(self)
-							local profile = strtrim(self.editBox:GetText() or "")
-							if strlen(profile) == 0 then
-								profile = L["New profile"]
-							end
-							if OptionHouseProfiles[profile] then
-								local i = 1
-								local newtext = profile .. " " .. i
-								while OptionHouseProfiles[profile] do
-									i = i + 1
-									newtext = profile .. " " .. i
-								end
-								profile = newtext
-							end
-							local addons = {}
-							for i = 1, GetNumAddOns() do
-								local name, _, _, enabled = GetAddOnInfo(i)
-								if enabled then
-									addons[name] = true
-								end
-							end
-							OptionHouseProfiles[profile] = addons
-							print(format(L["Created new profile: %s"], profile))
-						end,
-						EditBoxOnEnterPressed = function(self)
-							self:GetParent().button1:Click()
-						end,
-						OnShow = function(self)
-							self.editBox:SetFocus()
-						end,
-						OnHide = function(self)
-							ChatEdit_FocusActiveWindow()
-							self.editBox:SetText("")
-						end,
-					}
-				end
-				CloseDropDownMenus()
-				StaticPopup_Show("OPTIONHOUSE_NEW_PROFILE")
-			end
+			info.func = profile.NewProfile
 			UIDropDownMenu_AddButton(info, level)
 		elseif level == 2 then
-			local profile = UIDROPDOWNMENU_MENU_VALUE
-			if not profile or not OptionHouseProfiles[profile] then return end
+			local name = UIDROPDOWNMENU_MENU_VALUE
+			if not name or not OptionHouseProfiles[name] then return end
 
-			info.text = profile
+			info.text = name
 			info.isTitle = 1
 			info.notCheckable = 1
 			UIDropDownMenu_AddButton(info, level)
@@ -884,98 +950,19 @@ local function createManageFrame(hide)
 			info.isTitle = nil
 
 			info.text = L["Load"]
-			info.func = function()
-				local addons = OptionHouseProfiles[profile]
-				for i = 1, GetNumAddOns() do
-					local name = GetAddOnInfo(i)
-					if addons[name] then
-						EnableAddOn(i, toggleGlobally)
-					else
-						DisableAddOn(i, toggleGlobally)
-					end
-					saveAddonData(i)
-				end
-				updateManageList()
-				print(format(L["Loaded profile: %s"], profile))
-				CloseDropDownMenus()
-			end
+			info.func = profile.LoadProfile
 			UIDropDownMenu_AddButton(info, level)
 
 			info.text = L["Save"]
-			info.func = function()
-				-- save the currently selected addons to this profile
-				local addons = OptionHouseProfiles[profile]
-				wipe(addons)
-				for i = 1, GetNumAddOns() do
-					local name, _, _, enabled = GetAddOnInfo(i)
-					if enabled then
-						addons[name] = true
-					end
-				end
-				print(format(L["Saved profile: %s"], profile))
-				CloseDropDownMenus()
-			end
+			info.func = profile.SaveProfile
 			UIDropDownMenu_AddButton(info, level)
 
 			info.text = L["Rename"]
-			info.func = function(this)
-				-- rename this profile
-				if not StaticPopupDialogs["OPTIONHOUSE_RENAME_PROFILE"] then
-					StaticPopupDialogs["OPTIONHOUSE_RENAME_PROFILE"] = {
-						text = L["Enter a new name for this profile:"],
-						button1 = ACCEPT,
-						button2 = CANCEL,
-						exclusive = 1,
-						hasEditBox = 1,
-						hideOnEscape = 1,
-						maxLetters = 24,
-						timeout = 0,
-						whileDead = 1,
-						OnAccept = function(self)
-							local profile = strtrim(self.editBox:GetText() or "")
-							if strlen(profile) == 0 then
-								profile = L["New profile"]
-							end
-							if OptionHouseProfiles[profile] then
-								local i = 1
-								local newtext = profile .. " " .. i
-								while OptionHouseProfiles[profile] do
-									i = i + 1
-									newtext = profile .. " " .. i
-								end
-								profile = newtext
-							end
-							OptionHouseProfiles[profile] = OptionHouseProfiles[self.data]
-							OptionHouseProfiles[self.data] = nil
-							print(format(L["Renamed profile from %s to %s."], self.data, profile))
-						end,
-						EditBoxOnEnterPressed = function(self)
-							self:GetParent().button1:Click()
-						end,
-						OnShow = function(self)
-							self.editBox:SetText(self.data)
-							self.editBox:SetFocus()
-							self.editBox:HighlightText(0)
-						end,
-						OnHide = function(self)
-							ChatEdit_FocusActiveWindow()
-							self.editBox:SetText("")
-							self.data = nil
-						end,
-					}
-				end
-				CloseDropDownMenus()
-				StaticPopup_Show("OPTIONHOUSE_RENAME_PROFILE", nil, nil, profile)
-			end
+			info.func = profile.RenameProfile
 			UIDropDownMenu_AddButton(info, level)
 
 			info.text = L["Delete"]
-			info.func = function()
-				-- remove this profile
-				OptionHouseProfiles[profile] = nil
-				print(format(L["Deleted profile: %s"], profile))
-				CloseDropDownMenus()
-			end
+			info.func = profile.DeleteProfile
 			UIDropDownMenu_AddButton(info, level)
 		end
 	end
