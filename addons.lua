@@ -1,24 +1,19 @@
 local OPTIONHOUSE, L = ...
 
-OptionHouseProfiles = {}
-
 local TOTAL_ROWS = 14
+local CHARACTER = UnitName("player")
+local isWOD = select(4, GetBuildInfo()) >= 60000
 
 local Manage = {}
 local dependencies, addons, addonStatus = {}, {}, {}
-local frame, showBlizzard
+local toggleCharacter, showBlizzard, frame = CHARACTER
 
-local TOGGLE_ALL, TOGGLE_CHAR = true, false
-local toggleMode = TOGGLE_CHAR
+OptionHouseProfiles = {}
 
-local STATUS_COLORS = {
-	["DISABLED"] = "|cff9d9d9d",
-	["NOT_DEMAND_LOADED"] = "|cffff8000",
-	["DEP_NOT_DEMAND_LOADED"] = "|cffff8000",
-	["LOAD_ON_DEMAND"] = "|cff1eff00",
-	["DISABLED_AT_RELOAD"] = "|cffa335ee",
-	["INCOMPATIBLE"] = "|cffff2020",
-}
+local nameToIndex = {}
+for i = 1, GetNumAddOns() do
+	nameToIndex[(GetAddOnInfo(i))] = i
+end
 
 local blizzardAddons = {
 	["Blizzard_AchievementUI"] = true,
@@ -67,51 +62,37 @@ local blizzardAddons = {
 	["Blizzard_TrainerUI"] = true,
 	["Blizzard_VoidStorageUI"] = true,
 }
-
-local getAddOnInfo, getAddOnDependencies
-if not GetAddOnEnableState then
-	-- Alles ist gut!
-	getAddOnInfo = GetAddOnInfo
-	getAddOnDependencies = GetAddOnDependencies
-
-	for name in pairs(blizzardAddons) do
-		if select(6, getAddOnInfo(name)) == "MISSING" then
-			blizzardAddons[name] = nil
-		end
+if isWOD then
+	-- GetAddOnInfo no longer accepts names,
+	-- and Blizzard addons don't have indices,
+	-- so it's not possible to manage them.
+	wipe(blizzardAddons)
+end
+for name in pairs(blizzardAddons) do
+	if select(6, GetAddOnInfo(name)) == "MISSING" then
+		blizzardAddons[name] = nil
 	end
-else
-	-- WOD removes the ability to get any info about addons by name.
-	-- May those responsible for this clusterfuck be swarmed by hornets.
-	TOGGLE_ALL, TOGGLE_CHAR = ALL, UnitName("player")
-	toggleMode = TOGGLE_CHAR
+end
 
-	wipe(blizzardAddons) -- not possible to manage these anymore
+local STATUS_COLORS = {
+	["DISABLED"] = "|cff9d9d9d",
+	["NOT_DEMAND_LOADED"] = "|cffff8000",
+	["DEP_NOT_DEMAND_LOADED"] = "|cffff8000",
+	["LOAD_ON_DEMAND"] = "|cff1eff00",
+	["DISABLED_AT_RELOAD"] = "|cffa335ee",
+	["INCOMPATIBLE"] = "|cffff2020",
+}
 
-	function getAddOnInfo(what)
-		if type(what) == "number" then
-			local name, title, notes, loadable, reason, security = GetAddOnInfo(what)
-			local enabled = GetAddOnEnableState(TOGGLE_CHAR, what) > 0
-			return name, title, notes, enabled, loadable, reason, security
+local function isAddonEnabled(id)
+	if isWOD then
+		-- so annoy, wow!
+		if type(id) == "string" then
+			id = nameToIndex[id]
 		end
-		for i = 1, GetNumAddOns() do
-			local name, title, notes, loadable, reason, security = GetAddOnInfo(i)
-			if name == what then
-				local enabled = GetAddOnEnableState(TOGGLE_CHAR, i) > 0
-				return name, title, notes, enabled, loadable, reason, security
-			end
-		end
-	end
-
-	function getAddOnDependencies(what)
-		if type(what) == "number" then
-			return GetAddOnDependencies(what)
-		else
-			for i = 1, GetNumAddOns() do
-				if GetAddOnInfo(i) == what then
-					return GetAddOnDependencies(i)
-				end
-			end
-		end
+		return GetAddOnEnableState(CHARACTER, id) == 2
+	else
+		local _, _, _, enabled = GetAddOnInfo(id)
+		return enabled
 	end
 end
 
@@ -151,7 +132,7 @@ local function isAddonChildOf(parent, ...)
 	end
 
 	if type(parent) == "number" then
-		parent = strlower((getAddOnInfo(parent)))
+		parent = strlower((GetAddOnInfo(parent)))
 	end
 
 	for i = 1, select("#", ...) do
@@ -209,6 +190,7 @@ updateManageList = function()
 				usedRows = usedRows + 1
 
 				local row = frame.rows[usedRows]
+
 				row.title:SetFormattedText("%s%s|r", addon.isEnabled and (addon.isBlizzard and BATTLENET_FONT_COLOR_CODE or addon.isLibrary and NORMAL_FONT_COLOR_CODE) or addon.color or "", addon.title)
 				row.reason:SetFormattedText("%s%s|r", addon.color or "", addon.reason)
 
@@ -230,39 +212,43 @@ updateManageList = function()
 					row.button:Show()
 				end
 
-				for _, parent in pairs(row.parents) do parent:Hide() end
+				for _, parent in pairs(row.parents) do
+					parent:Hide()
+				end
 				if dependencies[addon.name] then
 					local id = 1
 					for dependency in pairs(dependencies[addon.name]) do
-						local parent = row.parents[id]
-						if not parent then
-							parent = CreateFrame("Button", nil, row)
-							parent:SetNormalFontObject(GameFontHighlightSmall)
-							parent:SetHeight(18)
-							parent:SetScript("OnClick", filterParent)
+						if not (isWOD and strmatch(dependency, "^Blizzard_")) then
+							-- WOD: don't bother showing Blizz addons since we can't manage them
+							local parent = row.parents[id]
+							if not parent then
+								parent = CreateFrame("Button", nil, row)
+								parent:SetNormalFontObject(GameFontHighlightSmall)
+								parent:SetHeight(18)
+								parent:SetScript("OnClick", filterParent)
 
-							if id > 1 then
-								parent:SetPoint("LEFT", row.parents[id - 1], "RIGHT", 4, 0)
-							else
-								parent:SetPoint("LEFT", row.title, "RIGHT", 23, 0)
+								if id > 1 then
+									parent:SetPoint("LEFT", row.parents[id - 1], "RIGHT", 4, 0)
+								else
+									parent:SetPoint("LEFT", row.title, "RIGHT", 23, 0)
+								end
+
+								row.parents[id] = parent
 							end
 
-							row.parents[id] = parent
+							if addonStatus[dependency] then
+								parent:SetText(addonStatus[dependency])
+							else
+								parent:SetFormattedText("%s%s|r", STATUS_COLORS["INCOMPATIBLE"], dependency)
+							end
+
+							parent.parentAddon = dependency
+							parent:SetWidth(parent:GetFontString():GetStringWidth() + 3)
+							parent:Show()
+
+							id = id + 1
 						end
-
-						if addonStatus[dependency] then
-							parent:SetText(addonStatus[dependency])
-						else
-							parent:SetFormattedText("%s%s|r", STATUS_COLORS["INCOMPATIBLE"], dependency)
-						end
-
-						parent.parentAddon = dependency
-						parent:SetWidth(parent:GetFontString():GetStringWidth() + 3)
-						parent:Show()
-
-						id = id + 1
 					end
-
 					addon.totalDependencies = id - 1
 				else
 					addon.totalDependencies = 0
@@ -271,7 +257,7 @@ updateManageList = function()
 		end
 	end
 
-	for i = usedRows+1, #frame.rows do
+	for i = usedRows + 1, #frame.rows do
 		frame.rows[i]:Hide()
 	end
 
@@ -292,7 +278,19 @@ local function sortManageClick(self)
 end
 
 local function saveAddonData(id, skipCheck, isBlizzard)
-	local name, title, notes, enabled, loadable, reason, security = getAddOnInfo(id)
+	local name, title, notes, enabled, loadable, reason, security
+	if isWOD then
+		-- so annoy, wow!
+		if type(id) == "string" then
+			id = nameToIndex[id]
+		end
+		if not id then return end
+		name, title, notes, loadable, reason, security = GetAddOnInfo(id)
+		enabled = GetAddOnEnableState(CHARACTER, id) == 2
+	else
+		name, title, notes, enabled, loadable, reason, security = GetAddOnInfo(id)
+	end
+
 	local isLoaded = IsAddOnLoaded(id)
 	local isLoD = IsAddOnLoadOnDemand(id)
 
@@ -308,7 +306,7 @@ local function saveAddonData(id, skipCheck, isBlizzard)
 	end
 
 	if not dependencies[name] then
-		dependencies[name] = createDependencies(getAddOnDependencies(id))
+		dependencies[name] = createDependencies(GetAddOnDependencies(id))
 	end
 
 	-- Addon is loaded, but it's incompatible, dependencies aren't demand loaded or it's disabled so
@@ -441,7 +439,7 @@ end
 
 local function activateChildren(children)
 	for _, child in pairs(children) do
-		EnableAddOn(child, toggleMode)
+		EnableAddOn(child, toggleCharacter)
 		saveAddonData(child)
 	end
 
@@ -449,14 +447,18 @@ local function activateChildren(children)
 end
 
 local function activateAddon(addon, useDeps)
-	EnableAddOn(addon, toggleMode)
+	if type(addon) == "string" then
+		addon = nameToIndex[addon]
+	end
+
+	EnableAddOn(addon, toggleCharacter)
 	saveAddonData(addon)
 
 	if useDeps and dependencies[addon] then
-		for dep, _ in pairs(dependencies[addon]) do
-			local _, _, _, enabled = getAddOnInfo(dep)
-			if not enabled then
-				EnableAddOn(dep, toggleMode)
+		for dep in pairs(dependencies[addon]) do
+			dep = nameToIndex[dep]
+			if not isAddonEnabled(dep) then
+				EnableAddOn(dep, toggleCharacter)
 				saveAddonData(dep)
 			end
 		end
@@ -466,7 +468,10 @@ local function activateAddon(addon, useDeps)
 end
 
 local function deactivateAddon(addon)
-	DisableAddOn(addon, toggleMode)
+	if type(addon) == "string" then
+		addon = nameToIndex[addon]
+	end
+	DisableAddOn(addon, toggleCharacter)
 	saveAddonData(addon)
 	updateManageList()
 end
@@ -474,8 +479,7 @@ end
 -- Toggle addon on
 local function toggleAddonStatus(self)
 	-- Addons disabled
-	local _, _, _, enabled = getAddOnInfo(self.addon)
-	if enabled then
+	if isAddonEnabled(self.addon) then
 		PlaySound("igMainMenuOptionCheckBoxOff")
 		return deactivateAddon(self.addon)
 	end
@@ -503,9 +507,9 @@ local function toggleAddonStatus(self)
 
 	local totalDependencies = 0
 	if dependencies[self.addon] then
-		for dep, _ in pairs(dependencies[self.addon]) do
-			local _, _, _, enabled = getAddOnInfo(dep)
-			if not enabled then
+		for dep in pairs(dependencies[self.addon]) do
+			dep = nameToIndex[dep]
+			if not isAddonEnabled(dep) then
 				totalDependencies = totalDependencies + 1
 			end
 		end
@@ -532,8 +536,7 @@ local function toggleAddonStatus(self)
 	-- Find all of the addons with us as a dependency
 	local children = {}
 	for i = 1, GetNumAddOns() do
-		local _, _, _, enabled = getAddOnInfo(i)
-		if not enabled and isAddonChildOf(self.addon, getAddOnDependencies(i)) then
+		if not isAddonEnabled(i) and isAddonChildOf(self.addon, GetAddOnDependencies(i)) then
 			tinsert(children, i)
 		end
 	end
@@ -712,18 +715,6 @@ local function createManageFrame(hide)
 	-- Creates the search input in the bottom left of the screen
 	OptionHouse:CreateSearchInput(frame, updateManageList)
 
-	-- Show Blizzard addons
-	if next(blizzardAddons) then
-		local showBlizz = CreateFrame("CheckButton", "$parentShowBlizz", frame, "InterfaceOptionsCheckButtonTemplate")
-		showBlizz:SetPoint("LEFT", frame.search, "RIGHT", 4, 0)
-		showBlizz.Text:SetText(L["Show Blizzard AddOns"])
-		showBlizz:SetHitRectInsets(0, -200, 0, 0)
-		showBlizz:SetScript("OnClick", function(self)
-			showBlizzard = not not self:GetChecked() -- #TODO: won't need casting in WOD
-			updateManageList()
-		end)
-	end
-
 	-- Misc status button things on the bottom right
 	local disableAll = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 	disableAll:SetWidth(120)
@@ -756,62 +747,70 @@ local function createManageFrame(hide)
 	reloadUI:SetText(L["Reload UI"])
 	reloadUI:SetScript("OnClick", ReloadUI)
 
-	-- Backwards compat for MOP
-	if not IsAddonVersionCheckEnabled then
-		function IsAddonVersionCheckEnabled()
-			return not GetCVarBool("checkAddonVersion")
-		end
-	end
-	if not SetAddonVersionCheck then
-		function SetAddonVersionCheck(v)
-			SetCVar("checkAddonVersion", v and "1" or "0")
-		end
+	-- Show Blizzard addons
+	if next(blizzardAddons) then
+		local showBlizz = CreateFrame("CheckButton", "$parentShowBlizz", frame, "InterfaceOptionsCheckButtonTemplate")
+		showBlizz:SetPoint("LEFT", frame.search, "RIGHT", 4, 0)
+		showBlizz.Text:SetText(L["Show Blizzard AddOns"])
+		showBlizz:SetHitRectInsets(0, -200, 0, 0)
+		showBlizz:SetScript("OnClick", function(self)
+			showBlizzard = not not self:GetChecked() -- #TODO: won't need casting in WOD
+			updateManageList()
+		end)
 	end
 
 	-- Toggle addons globally or per-character
-	local char = CreateFrame("Frame", "$parentCharacter", frame, "UIDropDownMenuTemplate")
-	char:SetPoint("TOPLEFT", 110, -40)
-	_G[char:GetName().."Text"]:SetText((UnitName("player")))
-
-	char.func = function(self)
-		_G[char:GetName().."Text"]:SetText(self:GetText())
-		toggleMode = self.value
+	local charDrop = CreateFrame("Frame", "$parentCharacter", frame, "UIDropDownMenuTemplate")
+	charDrop:SetPoint("TOPLEFT", 110, -41)
+	_G[charDrop:GetName().."Text"]:SetText(CHARACTER)
+	charDrop.func = function(self)
+		_G[charDrop:GetName().."Text"]:SetText(self.value)
+		toggleCharacter = self.value ~= ALL and self.value or nil
 		updateManageList()
 	end
-	char.initialize = function()
+	charDrop.initialize = function()
 		local info = UIDropDownMenu_CreateInfo()
-		info.func = char.func
+		info.func = charDrop.func
 
 		info.text = ALL
-		info.value = TOGGLE_ALL
-		info.checked = toggleMode == TOGGLE_ALL
+		info.value = ALL
+		info.selected = toggleCharacter == nil
 		UIDropDownMenu_AddButton(info)
 
-		info.text = UnitName("player")
-		info.value = TOGGLE_CHAR
-		info.checked = toggleMode == TOGGLE_CHAR
+		info.text = CHARACTER
+		info.value = CHARACTER
+		info.selected = toggleCharacter == CHARACTER
 		UIDropDownMenu_AddButton(info)
+	end
+
+	-- Backwards compat for MOP
+	local ADDON_FORCE_LOAD = ADDON_FORCE_LOAD
+		or GetLocale() == "deDE" and "Veralteten AddOns aktivieren"
+		or GetLocale() == "esES" or GetLocale() == "esMX" and "Cargar los AddOns desactualizados"
+		or "Load out of date AddOns"
+	local IsAddonVersionCheckEnabled = IsAddonVersionCheckEnabled or function()
+		return GetCVarBool("checkAddonVersion")
+	end
+	local SetAddonVersionCheck = SetAddonVersionCheck or function(value)
+		SetCVar("checkAddonVersion", value)
 	end
 
 	-- Load out of date addons
 	local forceLoad = CreateFrame("CheckButton", "$parentForceLoad", frame, "InterfaceOptionsCheckButtonTemplate")
-	forceLoad:SetPoint("LEFT", char, "RIGHT", 110, 1)
-	forceLoad.Text:SetText(ADDON_FORCE_LOAD
-			or GetLocale() == "deDE" and "Veralteten AddOns aktivieren"
-			or GetLocale() == "esES" or GetLocale() == "esMX" and "AddOns anticuados activar"
-			or "Load out of date AddOns")
+	forceLoad:SetPoint("LEFT", charDrop, "RIGHT", 116, 1)
+	forceLoad.Text:SetText(ADDON_FORCE_LOAD)
 	forceLoad:SetHitRectInsets(-200, 0, 0, 0)
 	forceLoad:SetChecked(not IsAddonVersionCheckEnabled())
 	forceLoad:SetScript("OnClick", function(self)
 		local on = self:GetChecked()
 		PlaySound(on and "igMainMenuOptionCheckBoxOn" or "igMainMenuOptionCheckBoxOff")
-		SetAddonVersionCheck(on)
+		SetAddonVersionCheck(not on)
 		updateManageList()
 	end)
 
 	-- Profiles
 	local profile = CreateFrame("Frame", "$parentProfile", frame, "UIDropDownMenuTemplate")
-	profile:SetPoint("TOPRIGHT", -130, -40)
+	profile:SetPoint("TOPRIGHT", -118, -41)
 	_G[profile:GetName().."Text"]:SetText(L["Profiles"])
 
 	profile.NewProfile = function()

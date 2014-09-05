@@ -1,10 +1,17 @@
 ## Interface: 50400
+
 ## Title: Option House |cff00ddbaMOD|r
 ## Notes: Addon control panel and performance monitor
+## Notes-deDE: AddOns-Bedienfeld und Funktionsüberwachung
+## Notes-esES: Panel de control de addons y monitor de rendimiento
+## Notes-esMX: Panel de control de addons y monitor de rendimiento
+
 ## Author: Shadowed
+
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Slash: /oh, /opthouse, /optionhouse
 ## X-LoadOn-Execute: GameMenuFrame:HookScript("OnShow", function() if not OptionHouse then AddonLoader:LoadAddOn("OptionHouse") end end)
+
 ## SavedVariables: OptionHouseProfiles
 
 localization.deDE.lua
