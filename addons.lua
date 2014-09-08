@@ -89,7 +89,7 @@ local function isAddonEnabled(id)
 		if type(id) == "string" then
 			id = nameToIndex[id]
 		end
-		return GetAddOnEnableState(CHARACTER, id) == 2
+		return GetAddOnEnableState(CHARACTER, id) > 0
 	else
 		local _, _, _, enabled = GetAddOnInfo(id)
 		return enabled
@@ -447,7 +447,7 @@ local function activateChildren(children)
 end
 
 local function activateAddon(addon, useDeps)
-	if type(addon) == "string" then
+	if type(addon) == "string" and not blizzardAddons[addon] then
 		addon = nameToIndex[addon]
 	end
 
@@ -456,7 +456,9 @@ local function activateAddon(addon, useDeps)
 
 	if useDeps and dependencies[addon] then
 		for dep in pairs(dependencies[addon]) do
-			dep = nameToIndex[dep]
+			if not blizzardAddons[dep] then
+				dep = nameToIndex[dep]
+			end
 			if not isAddonEnabled(dep) then
 				EnableAddOn(dep, toggleCharacter)
 				saveAddonData(dep)
@@ -468,7 +470,7 @@ local function activateAddon(addon, useDeps)
 end
 
 local function deactivateAddon(addon)
-	if type(addon) == "string" then
+	if type(addon) == "string" and not blizzardAddons[addon] then
 		addon = nameToIndex[addon]
 	end
 	DisableAddOn(addon, toggleCharacter)
@@ -508,7 +510,9 @@ local function toggleAddonStatus(self)
 	local totalDependencies = 0
 	if dependencies[self.addon] then
 		for dep in pairs(dependencies[self.addon]) do
-			dep = nameToIndex[dep]
+			if not blizzardAddons[addon] then
+				dep = nameToIndex[dep]
+			end
 			if not isAddonEnabled(dep) then
 				totalDependencies = totalDependencies + 1
 			end
@@ -870,9 +874,9 @@ local function createManageFrame(hide)
 			local saved = OptionHouseProfiles[name]
 			for _, data in pairs(addons) do
 				if saved[data.name] and not data.isEnabled then
-					activateAddOn(data.name, true)
+					activateAddon(data.name, true)
 				elseif data.isEnabled and not saved[data.name] then
-					deactivateAddOn(data.name)
+					deactivateAddon(data.name)
 				end
 			end
 			print(format(L["Loaded profile: %s"], name))
