@@ -10,11 +10,6 @@ local toggleCharacter, showBlizzard, frame = CHARACTER
 
 OptionHouseProfiles = {}
 
-local nameToIndex = {}
-for i = 1, GetNumAddOns() do
-	nameToIndex[(GetAddOnInfo(i))] = i
-end
-
 local blizzardAddons = {
 	["Blizzard_AchievementUI"] = true,
 	["Blizzard_ArchaeologyUI"] = true,
@@ -63,10 +58,10 @@ local blizzardAddons = {
 	["Blizzard_VoidStorageUI"] = true,
 }
 if isWOD then
-	-- GetAddOnInfo no longer accepts names,
-	-- and Blizzard addons don't have indices,
-	-- so it's not possible to manage them.
-	wipe(blizzardAddons)
+	-- TODO: Check if it's actually possible to enable/disable Blizzard addons in WOD
+	if select(5, GetAddOnInfo(name)) == "MISSING" then
+		blizzardAddons[name] = nil
+	end
 end
 for name in pairs(blizzardAddons) do
 	if select(6, GetAddOnInfo(name)) == "MISSING" then
@@ -85,10 +80,6 @@ local STATUS_COLORS = {
 
 local function isAddonEnabled(id)
 	if isWOD then
-		-- so annoy, wow!
-		if type(id) == "string" then
-			id = nameToIndex[id]
-		end
 		return GetAddOnEnableState(CHARACTER, id) > 0
 	else
 		local _, _, _, enabled = GetAddOnInfo(id)
@@ -280,11 +271,6 @@ end
 local function saveAddonData(id, skipCheck, isBlizzard)
 	local name, title, notes, enabled, loadable, reason, security
 	if isWOD then
-		-- so annoy, wow!
-		if type(id) == "string" then
-			id = nameToIndex[id]
-		end
-		if not id then return end
 		name, title, notes, loadable, reason, security = GetAddOnInfo(id)
 		enabled = GetAddOnEnableState(CHARACTER, id) == 2
 	else
@@ -447,18 +433,11 @@ local function activateChildren(children)
 end
 
 local function activateAddon(addon, useDeps)
-	if type(addon) == "string" and not blizzardAddons[addon] then
-		addon = nameToIndex[addon]
-	end
-
 	EnableAddOn(addon, toggleCharacter)
 	saveAddonData(addon)
 
 	if useDeps and dependencies[addon] then
 		for dep in pairs(dependencies[addon]) do
-			if not blizzardAddons[dep] then
-				dep = nameToIndex[dep]
-			end
 			if not isAddonEnabled(dep) then
 				EnableAddOn(dep, toggleCharacter)
 				saveAddonData(dep)
@@ -470,9 +449,6 @@ local function activateAddon(addon, useDeps)
 end
 
 local function deactivateAddon(addon)
-	if type(addon) == "string" and not blizzardAddons[addon] then
-		addon = nameToIndex[addon]
-	end
 	DisableAddOn(addon, toggleCharacter)
 	saveAddonData(addon)
 	updateManageList()
@@ -510,9 +486,6 @@ local function toggleAddonStatus(self)
 	local totalDependencies = 0
 	if dependencies[self.addon] then
 		for dep in pairs(dependencies[self.addon]) do
-			if not blizzardAddons[addon] then
-				dep = nameToIndex[dep]
-			end
 			if not isAddonEnabled(dep) then
 				totalDependencies = totalDependencies + 1
 			end
