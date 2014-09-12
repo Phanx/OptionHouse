@@ -6,7 +6,7 @@ local isWOD = select(4, GetBuildInfo()) >= 60000
 
 local Manage = {}
 local dependencies, addons, addonStatus = {}, {}, {}
-local toggleCharacter, showBlizzard, frame = CHARACTER
+local toggleForAll, showBlizzard, frame = false
 
 OptionHouseProfiles = {}
 
@@ -425,7 +425,7 @@ end
 
 local function activateChildren(children)
 	for _, child in pairs(children) do
-		EnableAddOn(child, toggleCharacter)
+		EnableAddOn(child, toggleForAll)
 		saveAddonData(child)
 	end
 
@@ -433,13 +433,13 @@ local function activateChildren(children)
 end
 
 local function activateAddon(addon, useDeps)
-	EnableAddOn(addon, toggleCharacter)
+	EnableAddOn(addon, toggleForAll)
 	saveAddonData(addon)
 
 	if useDeps and dependencies[addon] then
 		for dep in pairs(dependencies[addon]) do
 			if not isAddonEnabled(dep) then
-				EnableAddOn(dep, toggleCharacter)
+				EnableAddOn(dep, toggleForAll)
 				saveAddonData(dep)
 			end
 		end
@@ -449,7 +449,7 @@ local function activateAddon(addon, useDeps)
 end
 
 local function deactivateAddon(addon)
-	DisableAddOn(addon, toggleCharacter)
+	DisableAddOn(addon, toggleForAll)
 	saveAddonData(addon)
 	updateManageList()
 end
@@ -737,33 +737,40 @@ local function createManageFrame(hide)
 	end
 
 	-- Toggle addons globally or per-character
-	local charDrop = CreateFrame("Frame", "$parentCharacter", frame, "UIDropDownMenuTemplate")
-	charDrop:SetPoint("TOPLEFT", 110, -41)
-	_G[charDrop:GetName().."Text"]:SetText(CHARACTER)
-	charDrop.func = function(self)
-		_G[charDrop:GetName().."Text"]:SetText(self.value)
-		toggleCharacter = self.value ~= ALL and self.value or nil
+	local charSelect = CreateFrame("Frame", "$parentCharacterSelect", frame, "UIDropDownMenuTemplate")
+	charSelect:SetPoint("TOPLEFT", 110, -41)
+	_G[charSelect:GetName().."Text"]:SetText(CHARACTER)
+	charSelect.func = function(self)
+		_G[charSelect:GetName().."Text"]:SetText(self.value)
+		toggleForAll = self.value
 		updateManageList()
 	end
-	charDrop.initialize = function()
+	charSelect.initialize = function()
 		local info = UIDropDownMenu_CreateInfo()
-		info.func = charDrop.func
+		info.func = charSelect.func
 
 		info.text = ALL
-		info.value = ALL
-		info.selected = toggleCharacter == nil
+		info.value = true
+		info.selected = toggleForAll
 		UIDropDownMenu_AddButton(info)
 
-		info.text = CHARACTER
-		info.value = CHARACTER
-		info.selected = toggleCharacter == CHARACTER
+		info.text = UnitName("player")
+		info.value = false
+		info.selected = not toggleForAll
 		UIDropDownMenu_AddButton(info)
 	end
 
 	-- Backwards compat for MOP
 	local ADDON_FORCE_LOAD = ADDON_FORCE_LOAD
 		or GetLocale() == "deDE" and "Veralteten AddOns aktivieren"
-		or GetLocale() == "esES" or GetLocale() == "esMX" and "Cargar los AddOns desactualizados"
+		or GetLocale() == "esES" or GetLocale() == "esMX" and "Cargar accesorios antiguos"
+		or GetLocale() == "frFR" and "Lancer les add-ons périmés"
+		or GetLocale() == "itIT" and "Carica add-on non aggiornati"
+		or GetLocale() == "ptBR" and "Usar AddOns desatualizados"
+		or GetLocale() == "ruRU" and "Устаревшие модификации"
+		or GetLocale() == "koKR" and "구버전 인터페이스 불러오기"
+		or GetLocale() == "zhCN" and "加载过期插件"
+		or GetLocale() == "zhTW" and "載入過期插件"
 		or "Load out of date AddOns"
 	local IsAddonVersionCheckEnabled = IsAddonVersionCheckEnabled or function()
 		return GetCVarBool("checkAddonVersion")
@@ -774,14 +781,14 @@ local function createManageFrame(hide)
 
 	-- Load out of date addons
 	local forceLoad = CreateFrame("CheckButton", "$parentForceLoad", frame, "InterfaceOptionsCheckButtonTemplate")
-	forceLoad:SetPoint("LEFT", charDrop, "RIGHT", 116, 1)
+	forceLoad:SetPoint("LEFT", charSelect, "RIGHT", 116, 1)
 	forceLoad.Text:SetText(ADDON_FORCE_LOAD)
 	forceLoad:SetHitRectInsets(-200, 0, 0, 0)
 	forceLoad:SetChecked(not IsAddonVersionCheckEnabled())
 	forceLoad:SetScript("OnClick", function(self)
 		local on = self:GetChecked()
 		PlaySound(on and "igMainMenuOptionCheckBoxOn" or "igMainMenuOptionCheckBoxOff")
-		SetAddonVersionCheck(not on)
+		SetAddonVersionCheck(on and 1 or 0) -- still not boolean in WOD :(
 		updateManageList()
 	end)
 
