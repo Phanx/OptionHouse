@@ -360,6 +360,7 @@ function OptionHouse:CreateUI()
 	local frame = CreateFrame("Frame", "OptionHouseFrame", UIParent)
 	frame:CreateTitleRegion()
 	frame:SetClampedToScreen(true)
+	frame:EnableMouse(true) -- @Phanx: don't allow clickthrough
 	frame:SetMovable(false)
 	frame:SetFrameStrata("HIGH")
 	frame:SetWidth(832)
