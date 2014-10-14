@@ -57,12 +57,6 @@ local blizzardAddons = {
 	["Blizzard_TrainerUI"] = true,
 	["Blizzard_VoidStorageUI"] = true,
 }
-if isWOD then
-	-- TODO: Check if it's actually possible to enable/disable Blizzard addons in WOD
-	if select(5, GetAddOnInfo(name)) == "MISSING" then
-		blizzardAddons[name] = nil
-	end
-end
 for name in pairs(blizzardAddons) do
 	if select(6, GetAddOnInfo(name)) == "MISSING" then
 		blizzardAddons[name] = nil
