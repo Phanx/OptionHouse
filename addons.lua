@@ -10,52 +10,52 @@ local toggleForAll, showBlizzard, frame = false
 OptionHouseProfiles = {}
 
 local blizzardAddons = {
-	["Blizzard_AchievementUI"] = true,
-	["Blizzard_ArchaeologyUI"] = true,
-	["Blizzard_ArenaUI"] = true,
-	["Blizzard_AuctionUI"] = true,
-	["Blizzard_AuthChallengeUI"] = true,
-	["Blizzard_BarbershopUI"] = true,
-	["Blizzard_BattlefieldMinimap"] = true,
-	["Blizzard_BindingUI"] = true,
-	["Blizzard_BlackMarketUI"] = true,
-	["Blizzard_Calendar"] = true,
-	["Blizzard_ChallengesUI"] = true,
-	["Blizzard_ClientSavedVariables"] = true,
-	["Blizzard_CombatLog"] = true,
-	["Blizzard_CombatText"] = true,
-	["Blizzard_CompactRaidFrames"] = true,
-	["Blizzard_CUFProfiles"] = true,
-	["Blizzard_DebugTools"] = true,
-	["Blizzard_EncounterJournal"] = true,
-	["Blizzard_GarrisonUI"] = true,
-	["Blizzard_GlyphUI"] = true,
-	["Blizzard_GMChatUI"] = true,
-	["Blizzard_GMSurveyUI"] = true,
-	["Blizzard_GuildBankUI"] = true,
-	["Blizzard_GuildControlUI"] = true,
-	["Blizzard_GuildUI"] = true,
-	["Blizzard_InspectUI"] = true,
-	["Blizzard_ItemAlterationUI"] = true,
-	["Blizzard_ItemSocketingUI"] = true,
-	["Blizzard_ItemUpgradeUI"] = true,
-	["Blizzard_LookingForGuildUI"] = true,
-	["Blizzard_MacroUI"] = true,
-	["Blizzard_MovePad"] = true,
-	["Blizzard_ObjectiveTracker"] = true,
-	["Blizzard_PetBattleUI"] = true,
-	["Blizzard_PetJournal"] = true,
-	["Blizzard_PVPUI"] = true,
-	["Blizzard_QuestChoice"] = true,
-	["Blizzard_RaidUI"] = true,
-	["Blizzard_StoreUI"] = true,
-	["Blizzard_TalentUI"] = true,
-	["Blizzard_TimeManager"] = true,
-	["Blizzard_TokenUI"] = true,
-	["Blizzard_TradeSkillUI"] = true,
-	["Blizzard_TrainerUI"] = true,
-	["Blizzard_Tutorial"] = true,
-	["Blizzard_VoidStorageUI"] = true,
+	["Blizzard_AchievementUI"] = "Blizzard Achievement UI",
+	["Blizzard_ArchaeologyUI"] = "Blizzard Archaeology UI",
+	["Blizzard_ArenaUI"] = "Blizzard Arena UI",
+	["Blizzard_AuctionUI"] = "Blizzard Auction UI",
+	["Blizzard_AuthChallengeUI"] = "Blizzard AuthChallenge UI",
+	["Blizzard_BarbershopUI"] = "Blizzard Barbershop UI",
+	["Blizzard_BattlefieldMinimap"] = "Blizzard Battlefield Minimap",
+	["Blizzard_BindingUI"] = "Blizzard Binding UI",
+	["Blizzard_BlackMarketUI"] = "Blizzard Black Market UI",
+	["Blizzard_Calendar"] = "Blizzard Calendar",
+	["Blizzard_ChallengesUI"] = "Blizzard Challenges UI",
+	["Blizzard_ClientSavedVariables"] = "Blizzard Client Saved Variables",
+	["Blizzard_CombatLog"] = "Blizzard CombatLog",
+	["Blizzard_CombatText"] = "Blizzard CombatText",
+	["Blizzard_CompactRaidFrames"] = "Blizzard Compact Raid Frames",
+	["Blizzard_CUFProfiles"] = "Blizzard CUF Profiles",
+	["Blizzard_DebugTools"] = "Blizzard DebugTools",
+	["Blizzard_EncounterJournal"] = "Blizzard Encounter Journal",
+	["Blizzard_GarrisonUI"] = "Blizzard Garrison UI",
+	["Blizzard_GlyphUI"] = "Blizzard Glyph UI",
+	["Blizzard_GMChatUI"] = "Blizzard GM Chat UI",
+	["Blizzard_GMSurveyUI"] = "Blizzard GM Survey UI",
+	["Blizzard_GuildBankUI"] = "Blizzard Guild Bank UI",
+	["Blizzard_GuildControlUI"] = "Blizzard Guild Control UI",
+	["Blizzard_GuildUI"] = "Blizzard Guild UI",
+	["Blizzard_InspectUI"] = "Blizzard Inspect UI",
+	["Blizzard_ItemAlterationUI"] = "Blizzard Item Alteration UI",
+	["Blizzard_ItemSocketingUI"] = "Blizzard Item Socketing UI",
+	["Blizzard_ItemUpgradeUI"] = "Blizzard Item Upgrade UI",
+	["Blizzard_LookingForGuildUI"] = "Blizzard LookingForGuild UI",
+	["Blizzard_MacroUI"] = "Blizzard Macro UI",
+	["Blizzard_MovePad"] = "Blizzard Move Pad",
+	["Blizzard_ObjectiveTracker"] = "Blizzard Objective Tracker",
+	["Blizzard_PetBattleUI"] = "Blizzard Pet Battle UI",
+	["Blizzard_PetJournal"] = "Blizzard Pet Journal",
+	["Blizzard_PVPUI"] = "Blizzard PVP UI",
+	["Blizzard_QuestChoice"] = "Blizzard Quest Choice",
+	["Blizzard_RaidUI"] = "Blizzard Raid UI",
+	["Blizzard_StoreUI"] = "Blizzard Store UI",
+	["Blizzard_TalentUI"] = "Blizzard Talent UI",
+	["Blizzard_TimeManager"] = "Blizzard Time Manager",
+	["Blizzard_TokenUI"] = "Blizzard Token UI",
+	["Blizzard_TradeSkillUI"] = "Blizzard TradeSkill UI",
+	["Blizzard_TrainerUI"] = "Blizzard Trainer UI",
+	["Blizzard_Tutorial"] = "Blizzard Tutorial",
+	["Blizzard_VoidStorageUI"] = "Blizzard Void Storage UI",
 }
 for name in pairs(blizzardAddons) do
 	if select(6, GetAddOnInfo(name)) == "MISSING" then
@@ -259,11 +259,7 @@ local function saveAddonData(id, skipCheck, isBlizzard)
 
 	local isLibrary
 	if isBlizzard then
-		if not title or strmatch(title, "^Blizzard_") then
-			title = gsub(title or name, "_", " ")
-		elseif not strmatch(title, "Blizzard") then
-			title = "Blizzard " .. title
-		end
+		title = blizzardAddons[id]
 	elseif strmatch(name, "^Lib[%u%W]") or strmatch(title, "^Lib[%u%W]") then
 		isLibrary = true
 	end
@@ -783,7 +779,7 @@ local function createManageFrame(hide)
 					end
 					local saved = {}
 					for _, data in pairs(addons) do
-						if data.isEnabled then
+						if data.isEnabled and not data.isBlizzard then
 							saved[data.name] = true
 						end
 					end
@@ -810,6 +806,10 @@ local function createManageFrame(hide)
 		local name = UIDROPDOWNMENU_MENU_VALUE
 		if name then
 			local saved = OptionHouseProfiles[name]
+			for name in pairs(blizzardAddons) do
+				-- Clean up old profiles
+				saved[name] = nil
+			end
 			for _, data in pairs(addons) do
 				if saved[data.name] and not data.isEnabled then
 					activateAddon(data.name, true)
