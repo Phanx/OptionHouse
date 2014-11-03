@@ -1,4 +1,4 @@
-## Interface: 50400
+## Interface: 60000
 
 ## Title: Option House |cff00ddbaMOD|r
 ## Notes: Addon control panel and performance monitor
