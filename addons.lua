@@ -250,12 +250,13 @@ local function sortManageClick(self)
 	end
 end
 
-local function saveAddonData(id, skipCheck, isBlizzard)
+local function saveAddonData(id, skipCheck)
 	local name, title, notes, loadable, reason, security = GetAddOnInfo(id)
 	local enabled = GetAddOnEnableState(CHARACTER, id) > 0
 
 	local isLoaded = IsAddOnLoaded(id)
 	local isLoD = IsAddOnLoadOnDemand(id)
+	local isBlizzard = not not blizzardAddons[id]
 
 	local isLibrary
 	if isBlizzard then
@@ -380,7 +381,7 @@ local function createManageList()
 	-- While you can access Blizzard addons with the addon APIs, they aren't actually returned
 	-- by any of the count APIs so a manual list is kept
 	for name in pairs(blizzardAddons) do
-		saveAddonData(name, nil, true)
+		saveAddonData(name)
 	end
 
 	for id = 1, GetNumAddOns() do
@@ -436,7 +437,9 @@ local function toggleAddonStatus(self)
 	end
 
 	PlaySound("igMainMenuOptionCheckBoxOn")
-
+	return activateAddon(self.addon)
+	-- @Phanx: I can manage dependencies and children myself, thanks.
+--[=[
 	-- ENABLING THE DEPENDENCIES OF AN ADDON
 	-- Ask before enabling children
 	if not StaticPopupDialogs["ENABLE_ADDON_DEPS"] then
@@ -517,6 +520,7 @@ local function toggleAddonStatus(self)
 			dialog.data = children
 		end
 	end
+]=]
 end
 
 local function showTooltip(self)
