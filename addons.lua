@@ -815,7 +815,9 @@ local function createManageFrame(hide)
 				saved[name] = nil
 			end
 			for _, data in pairs(addons) do
-				if saved[data.name] and not data.isEnabled then
+				if data.isBlizzard then
+					-- do nothing
+				elseif saved[data.name] and not data.isEnabled then
 					activateAddon(data.name, true)
 				elseif data.isEnabled and not saved[data.name] then
 					deactivateAddon(data.name)
