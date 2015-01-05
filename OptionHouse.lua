@@ -78,7 +78,7 @@ local function tabOnClick(self)
 			else
 				tab.handler[tab.func](tab.handler)
 			end
-
+--[[
 			frame.topLeft:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-TopLeft")
 			frame.top:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-Top")
 			frame.topRight:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-TopRight")
@@ -86,6 +86,7 @@ local function tabOnClick(self)
 			frame.bottomLeft:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-BotLeft")
 			frame.bottom:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-Bot")
 			frame.bottomRight:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-BotRight")
+]]
 		elseif type(tab.func) == "function" then
 			tab.func(true)
 		else
@@ -321,57 +322,36 @@ function OptionHouse:CreateScrollFrame(frame, displayNum, onScroll)
 end
 
 -- SEARCH INPUT
-local function focusGained(self)
-	if self.searchText then
-		self.searchText = nil
-		self:SetText("")
-		self:SetTextColor(1, 1, 1, 1)
-	end
-end
-
-local function focusLost(self)
-	if not self.searchText and strtrim(self:GetText()) == "" then
-		self.searchText = true
-		self:SetText(L["Search..."])
-		self:SetTextColor(0.90, 0.90, 0.90, 0.80)
-	end
-end
-
 function OptionHouse:CreateSearchInput(frame, onChange)
-	frame.search = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
-	frame.search:SetHeight(19)
-	frame.search:SetWidth(150)
-	frame.search:SetAutoFocus(false)
-	frame.search:ClearAllPoints()
-	frame.search:SetPoint("CENTER", frame, "BOTTOMLEFT", 100, 25)
-
-	frame.search.searchText = true
-	frame.search:SetText(L["Search..."])
-	frame.search:SetTextColor(0.90, 0.90, 0.90, 0.80)
-	frame.search:SetScript("OnTextChanged", onChange)
-	frame.search:SetScript("OnEditFocusGained", focusGained)
-	frame.search:SetScript("OnEditFocusLost", focusLost)
+	local search = CreateFrame("EditBox", nil, frame, "SearchBoxTemplate")
+	search:SetPoint("CENTER", frame, "BOTTOMLEFT", 100, 25)
+	search:SetHeight(22) -- 19
+	search:SetWidth(155) -- 150
+	search:SetAutoFocus(false)
+	search:HookScript("OnTextChanged", onChange)
+	search.Left:SetTexture("")
+	search.Right:SetTexture("")
+	search.Middle:SetTexture("")
+	frame.search = search
 end
 
 -- Main container frame
 function OptionHouse:CreateUI()
 	if self.frame then return end
 
-	local frame = CreateFrame("Frame", "OptionHouseFrame", UIParent)
+	local frame = CreateFrame("Frame", "OptionHouseFrame", UIParent, "ButtonFrameTemplate")
 	frame:CreateTitleRegion()
-	frame:SetClampedToScreen(true)
 	frame:EnableMouse(true) -- @Phanx: don't allow clickthrough
-	frame:SetMovable(false)
+	frame:SetMovable(true)
+	frame:SetClampedToScreen(true)
 	frame:SetFrameStrata("HIGH")
 	frame:SetWidth(832)
 	frame:SetHeight(447)
 	frame:SetPoint("TOPLEFT", 0, -104)
-	frame.tabs = {}
 
 	-- If it's not hidden first, the panel layout becomes messed up
 	-- because dynamically created frames are created shown
 	frame:Hide()
-
 	frame:SetScript("OnHide", function()
 		if openedByMenu then
 			openedByMenu = nil
@@ -384,101 +364,51 @@ function OptionHouse:CreateUI()
 	frame:SetAttribute("UIPanelLayout-defined", true)
 	frame:SetAttribute("UIPanelLayout-enabled", true)
  	frame:SetAttribute("UIPanelLayout-area", "doublewide")
+	frame:SetAttribute("UIPanelLayout-pushable", 3)
 	frame:SetAttribute("UIPanelLayout-whileDead", true)
-	tinsert(UISpecialFrames, frame:GetName())
+	tinsert(UISpecialFrames, "OptionHouseFrame")
 
-	-- Title texture
-	local title = frame:GetTitleRegion()
-	title:SetWidth(757)
-	title:SetHeight(20)
-	title:SetPoint("TOPLEFT", 75, -15)
+	frame.TitleText:SetText(L["Option House"])
+	SetPortraitToTexture(frame.portrait, "Interface\\AddOns\\CodeRunner\\Portrait") -- OptionHouse\\GnomePortrait")
 
-	local texture = frame:CreateTexture(nil, "OVERLAY")
-	texture:SetWidth(128)
-	texture:SetHeight(128)
-	texture:SetPoint("TOPLEFT", 9, -2)
-	texture:SetTexture("Interface\\AddOns\\OptionHouse\\GnomePortrait")
-
-	frame:EnableMouse(false)
-	frame:SetMovable(true)
-
-	-- This goes in the entire bar where "OptionHouse" title text is
 	local mover = CreateFrame("Button", nil, frame)
-	mover:SetPoint("TOP", 25, -15)
-	mover:SetHeight(19)
-	mover:SetWidth(730)
-
-	mover:SetScript("OnLeave", hideTooltip)
-	mover:SetScript("OnEnter", showTooltip)
-	mover:SetScript("OnMouseUp", function(self)
-		if self.isMoving then
-			self.isMoving = nil
-			self:GetParent():StopMovingOrSizing()
+	mover:RegisterForClicks("RightButtonUp")
+	mover:RegisterForDrag("LeftButton")
+	mover:SetPoint("TOPLEFT", OptionHouseFrameTitleBg, 40, 0)
+	mover:SetPoint("BOTTOMRIGHT", OptionHouseFrameTitleBg)
+	mover:SetScript("OnLeave", GameTooltip_Hide)
+	mover:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 10)
+		GameTooltip:SetText("Drag to move this frame.\nRight-click to reset its position.")
+	end)
+	mover:SetScript("OnDragStart", function(self)
+		frame:StartMoving()
+		if GameTooltip:IsOwned(self) then
+			GameTooltip:Hide()
 		end
 	end)
-
-	mover:SetScript("OnMouseDown", function(self, mouse)
-		local parent = self:GetParent()
-
-		-- Start moving!
-		if mouse == "LeftButton" and parent:IsMovable() then
-			self.isMoving = true
-			parent:StartMoving()
-
-		-- Reset position
-		elseif mouse == "RightButton" then
-			parent:ClearAllPoints()
-			parent:SetPoint("TOPLEFT", 0, -104)
+	mover:SetScript("OnDragStop", function(self)
+		frame:StopMovingOrSizing()
+		frame.userPlaced = true
+		if self:IsMouseOver() then
+			self:GetScript("OnEnter")(self)
 		end
 	end)
-
-	-- Title
-	local title = frame:CreateFontString(nil, "OVERLAY")
-	title:SetFontObject(GameFontNormal)
-	title:SetPoint("TOP", 0, -18)
-	title:SetText(L["Option House"])
-
-	-- Container border
-	frame.topLeft = frame:CreateTexture(nil, "ARTWORK")
-	frame.topLeft:SetWidth(256)
-	frame.topLeft:SetHeight(256)
-	frame.topLeft:SetPoint("TOPLEFT", 0, 0)
-
-	frame.top = frame:CreateTexture(nil, "ARTWORK")
-	frame.top:SetWidth(320)
-	frame.top:SetHeight(256)
-	frame.top:SetPoint("TOPLEFT", 256, 0)
-
-	frame.topRight = frame:CreateTexture(nil, "ARTWORK")
-	frame.topRight:SetWidth(256)
-	frame.topRight:SetHeight(256)
-	frame.topRight:SetPoint("TOPLEFT", frame.top, "TOPRIGHT", 0, 0)
-
-	frame.bottomLeft = frame:CreateTexture(nil, "ARTWORK")
-	frame.bottomLeft:SetWidth(256)
-	frame.bottomLeft:SetHeight(256)
-	frame.bottomLeft:SetPoint("TOPLEFT", 0, -256)
-
-	frame.bottom = frame:CreateTexture(nil, "ARTWORK")
-	frame.bottom:SetWidth(320)
-	frame.bottom:SetHeight(256)
-	frame.bottom:SetPoint("TOPLEFT", 256, -256)
-
-	frame.bottomRight = frame:CreateTexture(nil, "ARTWORK")
-	frame.bottomRight:SetWidth(256)
-	frame.bottomRight:SetHeight(256)
-	frame.bottomRight:SetPoint("TOPLEFT", frame.bottom, "TOPRIGHT", 0, 0)
-
-	-- Close button
-	local button = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-	button:SetPoint("TOPRIGHT", 3, -8)
-	button:SetScript("OnClick", function()
-		HideUIPanel(frame)
+	mover:SetScript("OnHide", function(self)
+		frame:StopMovingOrSizing()
+	end)
+	mover:SetScript("OnClick", function(self, button)
+		if button == "RightButton" then
+			frame.userPlaced = false
+			frame:Hide()
+			ShowUIPanel(frame)
+		end
 	end)
 
 	self.frame = frame
 
 	-- Create tabs
+	frame.tabs = {}
 	for id, tab in pairs(tabFunctions) do
 		self:CreateTab(tab.text, id)
 	end
@@ -486,50 +416,50 @@ end
 
 function OptionHouse:RegisterTab(text, func, type)
 	tinsert(tabFunctions, { func = func, text = text, type = type })
-
 	-- Will create all of the tabs when the frame is created if needed
-	if not self.frame then
-		return
-	end
-
+	if not self.frame then return end
 	self:CreateTab(text, #(tabFunctions))
 end
 
 function OptionHouse:Open(id)
+	if self.frame and self.frame:IsShown() then return end
 	self:CreateUI()
 	tabOnClick(tonumber(tab) or 1)
-	ShowUIPanel(self.frame)
+	if self.frame.userPlaced then
+		self.frame:Show()
+	else
+		ShowUIPanel(self.frame)
+	end
 end
 
-if GameMenuButtonAddons then -- WoD
-	GameMenuButtonAddons:SetScript("OnClick", function()
-		openedByMenu = true
-		PlaySound("igMainMenuOption")
-		HideUIPanel(GameMenuFrame)
-		OptionHouse:Open()
-	end)
-else
-	local menuButton = CreateFrame("Button", "GameMenuButtonOptionHouse", GameMenuFrame, "GameMenuButtonTemplate")
-	menuButton:SetText(ADDONS)
-	menuButton:SetScript("OnClick", function()
-		openedByMenu = true
-		PlaySound("igMainMenuOption")
-		HideUIPanel(GameMenuFrame)
-		OptionHouse:Open()
-	end)
-
-	-- Position below "Interface Options"
-	local point, anchorTo, relativePoint, x, y = GameMenuButtonKeybindings:GetPoint()
-	menuButton:SetPoint(point, anchorTo, relativePoint, x, y)
-
-	GameMenuButtonKeybindings:SetPoint(point, menuButton, relativePoint, x, y)
-	GameMenuFrame:SetHeight(GameMenuFrame:GetHeight() + 25)
+function OptionHouse:Close()
+	if not self.frame or not self.frame:IsShown() then return end
+	if self.frame.userPlaced then
+		self.frame:Hide()
+	else
+		HideUIPanel(self.frame)
+	end
 end
+
+function OptionHouse:Toggle(tab)
+	if self.frame and self.frame:IsShown() then
+		self:Close()
+	else
+		self:Open(tab)
+	end
+end
+
+GameMenuButtonAddons:SetScript("OnClick", function()
+	openedByMenu = true
+	PlaySound("igMainMenuOption")
+	HideUIPanel(GameMenuFrame)
+	OptionHouse:Open()
+end)
 
 -- Slash commands
 SLASH_OPTIONHOUSE1 = "/opthouse"
 SLASH_OPTIONHOUSE2 = "/optionhouse"
 SLASH_OPTIONHOUSE3 = "/oh"
 SlashCmdList["OPTIONHOUSE"] = function(tab)
-	OptionHouse:Open(tab)
+	OptionHouse:Toggle(tab)
 end
