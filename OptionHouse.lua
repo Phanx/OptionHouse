@@ -248,7 +248,9 @@ function OptionHouse:CreateUI()
 	tinsert(UISpecialFrames, "OptionHouseFrame")
 
 	frame.TitleText:SetText(L["Option House"])
-	SetPortraitToTexture(frame.portrait, "Interface\\AddOns\\CodeRunner\\Portrait") -- OptionHouse\\GnomePortrait")
+	frame.portrait:SetTexture("Interface\\AddOns\\OptionHouse\\GnomePortrait")
+	frame.portrait:SetPoint("TOPLEFT", -4, 12)
+	frame.portrait:SetDrawLayer("OVERLAY")
 
 	local mover = CreateFrame("Button", nil, frame)
 	mover:RegisterForClicks("RightButtonUp")

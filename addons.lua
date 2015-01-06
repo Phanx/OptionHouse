@@ -629,7 +629,7 @@ local function createManageFrame(hide)
 
 	-- Toggle addons globally or per-character
 	local charSelect = CreateFrame("Frame", "$parentCharacterSelect", frame, "UIDropDownMenuTemplate")
-	charSelect:SetPoint("TOPLEFT", 45, -30)
+	charSelect:SetPoint("TOPLEFT", 90, -30)
 	charSelect.Text = _G[charSelect:GetName().."Text"]
 	charSelect.Text:SetText(CHARACTER)
 	charSelect.func = function(self)
