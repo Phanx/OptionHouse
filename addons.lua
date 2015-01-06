@@ -1,6 +1,6 @@
 local OPTIONHOUSE, L = ...
 
-local TOTAL_ROWS = 14
+local TOTAL_ROWS = 15
 local CHARACTER = UnitName("player")
 
 local Manage = {}
@@ -10,52 +10,52 @@ local toggleForAll, showBlizzard, frame = false
 OptionHouseProfiles = {}
 
 local blizzardAddons = {
-	["Blizzard_AchievementUI"] = "Blizzard Achievement UI",
-	["Blizzard_ArchaeologyUI"] = "Blizzard Archaeology UI",
-	["Blizzard_ArenaUI"] = "Blizzard Arena UI",
-	["Blizzard_AuctionUI"] = "Blizzard Auction UI",
-	["Blizzard_AuthChallengeUI"] = "Blizzard AuthChallenge UI",
-	["Blizzard_BarbershopUI"] = "Blizzard Barbershop UI",
-	["Blizzard_BattlefieldMinimap"] = "Blizzard Battlefield Minimap",
-	["Blizzard_BindingUI"] = "Blizzard Binding UI",
-	["Blizzard_BlackMarketUI"] = "Blizzard Black Market UI",
-	["Blizzard_Calendar"] = "Blizzard Calendar",
-	["Blizzard_ChallengesUI"] = "Blizzard Challenges UI",
-	["Blizzard_ClientSavedVariables"] = "Blizzard Client Saved Variables",
-	["Blizzard_CombatLog"] = "Blizzard CombatLog",
-	["Blizzard_CombatText"] = "Blizzard CombatText",
-	["Blizzard_CompactRaidFrames"] = "Blizzard Compact Raid Frames",
-	["Blizzard_CUFProfiles"] = "Blizzard CUF Profiles",
-	["Blizzard_DebugTools"] = "Blizzard DebugTools",
-	["Blizzard_EncounterJournal"] = "Blizzard Encounter Journal",
-	["Blizzard_GarrisonUI"] = "Blizzard Garrison UI",
-	["Blizzard_GlyphUI"] = "Blizzard Glyph UI",
-	["Blizzard_GMChatUI"] = "Blizzard GM Chat UI",
-	["Blizzard_GMSurveyUI"] = "Blizzard GM Survey UI",
-	["Blizzard_GuildBankUI"] = "Blizzard Guild Bank UI",
-	["Blizzard_GuildControlUI"] = "Blizzard Guild Control UI",
-	["Blizzard_GuildUI"] = "Blizzard Guild UI",
-	["Blizzard_InspectUI"] = "Blizzard Inspect UI",
-	["Blizzard_ItemAlterationUI"] = "Blizzard Item Alteration UI",
-	["Blizzard_ItemSocketingUI"] = "Blizzard Item Socketing UI",
-	["Blizzard_ItemUpgradeUI"] = "Blizzard Item Upgrade UI",
-	["Blizzard_LookingForGuildUI"] = "Blizzard LookingForGuild UI",
-	["Blizzard_MacroUI"] = "Blizzard Macro UI",
-	["Blizzard_MovePad"] = "Blizzard Move Pad",
-	["Blizzard_ObjectiveTracker"] = "Blizzard Objective Tracker",
-	["Blizzard_PetBattleUI"] = "Blizzard Pet Battle UI",
-	["Blizzard_PetJournal"] = "Blizzard Pet Journal",
-	["Blizzard_PVPUI"] = "Blizzard PVP UI",
-	["Blizzard_QuestChoice"] = "Blizzard Quest Choice",
-	["Blizzard_RaidUI"] = "Blizzard Raid UI",
-	["Blizzard_StoreUI"] = "Blizzard Store UI",
-	["Blizzard_TalentUI"] = "Blizzard Talent UI",
-	["Blizzard_TimeManager"] = "Blizzard Time Manager",
-	["Blizzard_TokenUI"] = "Blizzard Token UI",
-	["Blizzard_TradeSkillUI"] = "Blizzard TradeSkill UI",
-	["Blizzard_TrainerUI"] = "Blizzard Trainer UI",
-	["Blizzard_Tutorial"] = "Blizzard Tutorial",
-	["Blizzard_VoidStorageUI"] = "Blizzard Void Storage UI",
+	["Blizzard_AchievementUI"] = true,
+	["Blizzard_ArchaeologyUI"] = true,
+	["Blizzard_ArenaUI"] = true,
+	["Blizzard_AuctionUI"] = true,
+	["Blizzard_AuthChallengeUI"] = true,
+	["Blizzard_BarbershopUI"] = true,
+	["Blizzard_BattlefieldMinimap"] = true,
+	["Blizzard_BindingUI"] = true,
+	["Blizzard_BlackMarketUI"] = true,
+	["Blizzard_Calendar"] = true,
+	["Blizzard_ChallengesUI"] = true,
+	["Blizzard_ClientSavedVariables"] = true,
+	["Blizzard_CombatLog"] = true,
+	["Blizzard_CombatText"] = true,
+	["Blizzard_CompactRaidFrames"] = true,
+	["Blizzard_CUFProfiles"] = true,
+	["Blizzard_DebugTools"] = true,
+	["Blizzard_EncounterJournal"] = true,
+	["Blizzard_GarrisonUI"] = true,
+	["Blizzard_GlyphUI"] = true,
+	["Blizzard_GMChatUI"] = true,
+	["Blizzard_GMSurveyUI"] = true,
+	["Blizzard_GuildBankUI"] = true,
+	["Blizzard_GuildControlUI"] = true,
+	["Blizzard_GuildUI"] = true,
+	["Blizzard_InspectUI"] = true,
+	["Blizzard_ItemAlterationUI"] = true,
+	["Blizzard_ItemSocketingUI"] = true,
+	["Blizzard_ItemUpgradeUI"] = true,
+	["Blizzard_LookingForGuildUI"] = true,
+	["Blizzard_MacroUI"] = true,
+	["Blizzard_MovePad"] = true,
+	["Blizzard_ObjectiveTracker"] = true,
+	["Blizzard_PetBattleUI"] = true,
+	["Blizzard_PetJournal"] = true,
+	["Blizzard_PVPUI"] = true,
+	["Blizzard_QuestChoice"] = true,
+	["Blizzard_RaidUI"] = true,
+	["Blizzard_StoreUI"] = true,
+	["Blizzard_TalentUI"] = true,
+	["Blizzard_TimeManager"] = true,
+	["Blizzard_TokenUI"] = true,
+	["Blizzard_TradeSkillUI"] = true,
+	["Blizzard_TrainerUI"] = true,
+	["Blizzard_Tutorial"] = true,
+	["Blizzard_VoidStorageUI"] = true,
 }
 for name in pairs(blizzardAddons) do
 	if select(6, GetAddOnInfo(name)) == "MISSING" then
@@ -260,7 +260,7 @@ local function saveAddonData(id, skipCheck)
 
 	local isLibrary
 	if isBlizzard then
-		title = blizzardAddons[id]
+		title = gsub(name, "_", " ")
 	elseif strmatch(name, "^Lib[%u%W]") or strmatch(title, "^Lib[%u%W]") then
 		isLibrary = true
 	end
@@ -435,95 +435,12 @@ local function toggleAddonStatus(self)
 		PlaySound("igMainMenuOptionCheckBoxOff")
 		return deactivateAddon(self.addon)
 	end
-
 	PlaySound("igMainMenuOptionCheckBoxOn")
-	return activateAddon(self.addon)
-	-- @Phanx: I can manage dependencies and children myself, thanks.
---[=[
-	-- ENABLING THE DEPENDENCIES OF AN ADDON
-	-- Ask before enabling children
-	if not StaticPopupDialogs["ENABLE_ADDON_DEPS"] then
-		StaticPopupDialogs["ENABLE_ADDON_DEPS"] = {
-			button1 = YES,
-			button2 = NO,
-			OnAccept = function(dialog, id)
-				activateAddon(id, true)
-			end,
-			OnCancel = function(dialog, id)
-				activateAddon(id)
-			end,
-			timeout = 0,
-			whileDead = 1,
-			hideOnEscape = 1,
-			multiple = 1,
-		}
-	end
-
-	local totalDependencies = 0
-	if dependencies[self.addon] then
-		for dep in pairs(dependencies[self.addon]) do
-			if GetAddOnEnableState(CHARACTER, dep) == 0 then
-				totalDependencies = totalDependencies + 1
-			end
-		end
-	end
-
-	if totalDependencies > 0 then
-		if totalDependencies > 1 then
-			StaticPopupDialogs["ENABLE_ADDON_DEPS"].text = L["Would you like to enable the %d dependencies for %s?"]
-		else
-			StaticPopupDialogs["ENABLE_ADDON_DEPS"].text = L["Would you like to enable the %d dependency for %s?"]
-		end
-
-		-- damn you slouken =(
-		local dialog = StaticPopup_Show("ENABLE_ADDON_DEPS", totalDependencies, self.addon)
-		if dialog then
-			dialog.data = self.addon
-		end
-	else
-		activateAddon(self.addon)
-	end
-
-	-- ENABLING THE CHILDREN OF AN ADDON
-	-- BigWigs, LightHeaded (damn clad), ect
-	-- Find all of the addons with us as a dependency
-	local children = {}
-	for i = 1, GetNumAddOns() do
-		if GetAddOnEnableState(CHARACTER, i) == 0 and isAddonChildOf(self.addon, GetAddOnDependencies(i)) then
-			tinsert(children, i)
-		end
-	end
-
-	if #children > 0 then
-		if not StaticPopupDialogs["ENABLE_ADDON_CHILDREN"] then
-			StaticPopupDialogs["ENABLE_ADDON_CHILDREN"] = {
-				button1 = YES,
-				button2 = NO,
-				OnAccept = function(dialog, children)
-					activateChildren(children)
-				end,
-				timeout = 0,
-				whileDead = 1,
-				hideOnEscape = 1,
-				multiple = 1,
-			}
-		end
-
-		if #children > 1 then
-			StaticPopupDialogs["ENABLE_ADDON_CHILDREN"].text = L["Would you like to enable the %s children addons for %s?"]
-		else
-			StaticPopupDialogs["ENABLE_ADDON_CHILDREN"].text = L["Would you like to enable the %s child addon for %s?"]
-		end
-
-		local dialog = StaticPopup_Show("ENABLE_ADDON_CHILDREN", #children, self.addon)
-		if dialog then
-			dialog.data = children
-		end
-	end
-]=]
+	activateAddon(self.addon)
 end
 
 local function showTooltip(self)
+	self:GetParent().highlight:SetDrawLayer("ARTWORK")
 	if self.tooltip then
 		GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT", 230)
 		GameTooltip:SetText(self.title, 1, 1, 1)
@@ -532,7 +449,8 @@ local function showTooltip(self)
 	end
 end
 
-local function hideTooltip()
+local function hideTooltip(self)
+	self:GetParent().highlight:SetDrawLayer("HIGHLIGHT")
 	GameTooltip:Hide()
 end
 
@@ -546,7 +464,7 @@ local function createRows()
 		frame.rows[id] = row
 
 		-- Enable checkbox
-		row.enabled = CreateFrame("CheckButton", "OptionHouseFrameAddonsRowCheck" .. id, row, "OptionsCheckButtonTemplate")
+		row.enabled = CreateFrame("CheckButton", nil, row, "OptionsCheckButtonTemplate")
 		row.enabled:SetWidth(22)
 		row.enabled:SetHeight(22)
 		row.enabled:SetHitRectInsets(0, -215, 0, 0)
@@ -562,20 +480,26 @@ local function createRows()
 
 		-- Load a LoD addon
 		row.button = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-		row.button:SetWidth(50)
-		row.button:SetHeight(18)
+		row.button:SetSize(50, 18)
 		row.button:SetPoint("RIGHT", row, "RIGHT", -3, 0)
 		row.button:SetText(L["Load"])
 		row.button:SetScript("OnClick", loadAddon)
 
 		-- Addon title
 		row.title = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-		row.title:SetWidth(190)
-		row.title:SetHeight(20)
+		row.title:SetSize(230, 22)
 		row.title:SetJustifyH("LEFT")
 		row.title:SetJustifyV("CENTER")
 		row.title:SetPoint("LEFT", row.enabled, "RIGHT", 0, 0)
 		row.title:SetNonSpaceWrap(false)
+
+		-- Highlight texture
+		row:EnableMouse(true)
+		row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
+		row.highlight:SetAllPoints(true)
+		row.highlight:SetBlendMode("ADD")
+		row.highlight:SetTexture([[Interface\FriendsFrame\UI-FriendsFrame-HighlightBar-Blue]])
+		row.highlight:SetAlpha(0.5)
 
 		if id > 1 then
 			row:ClearAllPoints()
@@ -583,8 +507,8 @@ local function createRows()
 			row:SetPoint("TOPRIGHT", frame.rows[id - 1], "BOTTOMRIGHT", 0, 0)
 		else
 			row:ClearAllPoints()
-			row:SetPoint("TOPLEFT", frame, "TOPLEFT", 24, -96)
-			row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -46, 0)
+			row:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -88)
+			row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -35, -88)
 		end
 	end
 end
@@ -599,12 +523,14 @@ local function createManageFrame(hide)
 		return
 	end
 
-	frame = CreateFrame("Frame", nil, OptionHouse.frame)
+	frame = CreateFrame("Frame", "$parentManagement", OptionHouse.frame)
+	frame:SetAllPoints(true)
+	frame:Hide()
+
+	frame.sortButtons = {}
 	frame.sortOrder = true
 	frame.sortType = "name"
-	frame.sortButtons = {}
-	frame:SetAllPoints(OptionHouse.frame)
-	frame:Hide()
+
 	frame:SetScript("OnShow", function(self)
 		self:RegisterEvent("ADDON_LOADED")
 		createManageList()
@@ -620,60 +546,50 @@ local function createManageFrame(hide)
 
 	-- Sorting headers
 	local button = CreateFrame("Button", nil, frame)
-	button:SetScript("OnClick", sortManageClick)
-	button:SetHeight(20)
-	button:SetWidth(75)
-	button:SetNormalFontObject(GameFontNormal)
-	button.sortType = "name"
+	button:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -68)
+	button:SetSize(275, 18)
+	button:SetFontString(button:CreateFontString(nil, "OVERLAY", "GameFontNormal"))
+	button:GetFontString():SetPoint("BOTTOMLEFT")
+	button:GetFontString():SetJustifyH("LEFT")
 	button:SetText(L["Name"])
-	button:SetWidth(button:GetFontString():GetStringWidth() + 3)
-	button:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, -73)
-	button:Show()
-
+	button.sortType = "name"
+	button:SetScript("OnClick", sortManageClick)
 	frame.sortButtons.title = button
 
 	button = CreateFrame("Button", nil, frame)
-	button:SetScript("OnClick", sortManageClick)
-	button:SetHeight(20)
-	button:SetWidth(75)
-	button:SetNormalFontObject(GameFontNormal)
-	button.sortType = "totalDependencies"
+	button:SetPoint("LEFT", frame.sortButtons.title, "RIGHT", 3, 0)
+	button:SetSize(75, 18)
+	button:SetFontString(button:CreateFontString(nil, "OVERLAY", "GameFontNormal"))
+	button:GetFontString():SetPoint("BOTTOMLEFT")
+	button:GetFontString():SetJustifyH("LEFT")
 	button:SetText(L["Dependencies"])
 	button:SetWidth(button:GetFontString():GetStringWidth() + 3)
-	button:SetPoint("TOPLEFT", frame, "TOPLEFT", 260, -73)
-	button:Show()
-
+	button.sortType = "totalDependencies"
+	button:SetScript("OnClick", sortManageClick)
 	frame.sortButtons.dependencies = button
 
 	button = CreateFrame("Button", nil, frame)
-	button:SetScript("OnClick", sortManageClick)
-	button:SetHeight(20)
-	button:SetWidth(75)
-	button:SetNormalFontObject(GameFontNormal)
-	button.sortType = "reason"
+	button:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -40, -68)
+	button:SetSize(75, 18)
+	button:SetFontString(button:CreateFontString(nil, "OVERLAY", "GameFontNormal"))
+	button:GetFontString():SetPoint("BOTTOMRIGHT")
+	button:GetFontString():SetJustifyH("RIGHT")
 	button:SetText(L["Status"])
 	button:SetWidth(button:GetFontString():GetStringWidth() + 3)
-	button:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -50, -73)
-	button:Show()
-
+	button.sortType = "reason"
+	button:SetScript("OnClick", sortManageClick)
 	frame.sortButtons.status = button
 
-	-- Create all of the rows for display
 	createRows()
 
 	OptionHouse:CreateScrollFrame(frame, TOTAL_ROWS, updateManageList)
-
-	frame.scroll:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, -76)
-	frame.scroll:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -35, 72)
-
-	-- Creates the search input in the bottom left of the screen
 	OptionHouse:CreateSearchInput(frame, updateManageList)
 
 	-- Misc status button things on the bottom right
 	local disableAll = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 	disableAll:SetWidth(120)
 	disableAll:SetHeight(22)
-	disableAll:SetPoint("BOTTOMRIGHT", OptionHouse.frame, "BOTTOMRIGHT", -8, 14)
+	disableAll:SetPoint("BOTTOMRIGHT", OptionHouse.frame, "BOTTOMRIGHT", -8, 4)
 	disableAll:SetText(L["Disable All"])
 	disableAll:SetScript("OnClick", function()
 		DisableAllAddOns()
@@ -686,7 +602,7 @@ local function createManageFrame(hide)
 	local enableAll = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 	enableAll:SetWidth(120)
 	enableAll:SetHeight(22)
-	enableAll:SetPoint("RIGHT", disableAll, "LEFT")
+	enableAll:SetPoint("RIGHT", disableAll, "LEFT", -2, 0)
 	enableAll:SetText(L["Enable All"])
 	enableAll:SetScript("OnClick", function()
 		EnableAllAddOns()
@@ -694,30 +610,30 @@ local function createManageFrame(hide)
 		updateManageList()
 	end)
 
-	local reloadUI = CreateFrame("Button", nil, frame, "UIPanelButtonGrayTemplate")
+	local reloadUI = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") -- UIPanelButtonGrayTemplate
 	reloadUI:SetWidth(120)
 	reloadUI:SetHeight(22)
-	reloadUI:SetPoint("RIGHT", enableAll, "LEFT")
+	reloadUI:SetPoint("RIGHT", enableAll, "LEFT", -2, 0)
 	reloadUI:SetText(L["Reload UI"])
 	reloadUI:SetScript("OnClick", ReloadUI)
 
 	-- Show Blizzard addons
-	if next(blizzardAddons) then
-		local showBlizz = CreateFrame("CheckButton", "$parentShowBlizz", frame, "InterfaceOptionsCheckButtonTemplate")
-		showBlizz:SetPoint("LEFT", frame.search, "RIGHT", 4, 0)
-		showBlizz.Text:SetText(L["Show Blizzard AddOns"])
-		showBlizz:SetHitRectInsets(0, -200, 0, 0)
-		showBlizz:SetScript("OnClick", function(self)
-			showBlizzard = self:GetChecked()
-			updateManageList()
-		end)
-	end
+	local showBlizz = CreateFrame("CheckButton", "$parentShowBlizz", frame, "InterfaceOptionsCheckButtonTemplate")
+	showBlizz:SetPoint("LEFT", frame.search, "RIGHT", 4, 0)
+	showBlizz.Text:SetText(L["Show Blizzard AddOns"])
+	showBlizz:SetHitRectInsets(0, -200, 0, 0)
+	showBlizz:SetScript("OnClick", function(self)
+		showBlizzard = self:GetChecked()
+		updateManageList()
+	end)
 
 	-- Toggle addons globally or per-character
 	local charSelect = CreateFrame("Frame", "$parentCharacterSelect", frame, "UIDropDownMenuTemplate")
-	charSelect:SetPoint("TOPLEFT", 110, -41)
+	charSelect:SetPoint("TOPLEFT", 45, -30)
+	charSelect.Text = _G[charSelect:GetName().."Text"]
+	charSelect.Text:SetText(CHARACTER)
 	charSelect.func = function(self)
-		_G[charSelect:GetName().."Text"]:SetText(self:GetText())
+		charSelect.Text:SetText(self:GetText())
 		toggleForAll = self.value
 		updateManageList()
 	end
@@ -735,13 +651,12 @@ local function createManageFrame(hide)
 		info.selected = not toggleForAll
 		UIDropDownMenu_AddButton(info)
 	end
-	_G[charSelect:GetName().."Text"]:SetText(CHARACTER)
 
 	-- Load out of date addons
 	local forceLoad = CreateFrame("CheckButton", "$parentForceLoad", frame, "InterfaceOptionsCheckButtonTemplate")
 	forceLoad:SetPoint("LEFT", charSelect, "RIGHT", 116, 1)
 	forceLoad.Text:SetText(ADDON_FORCE_LOAD)
-	forceLoad:SetHitRectInsets(-200, 0, 0, 0)
+	forceLoad:SetHitRectInsets(0, -200, 0, 0)
 	forceLoad:SetChecked(not IsAddonVersionCheckEnabled())
 	forceLoad:SetScript("OnClick", function(self)
 		local on = self:GetChecked()
@@ -752,7 +667,7 @@ local function createManageFrame(hide)
 
 	-- Profiles
 	local profile = CreateFrame("Frame", "$parentProfile", frame, "UIDropDownMenuTemplate")
-	profile:SetPoint("TOPRIGHT", -118, -41)
+	profile:SetPoint("TOPRIGHT", -120, -30)
 	_G[profile:GetName().."Text"]:SetText(L["Profiles"])
 
 	profile.NewProfile = function()
@@ -960,4 +875,4 @@ local function createManageFrame(hide)
 end
 
 -- Load it into OH
-OptionHouse:RegisterTab(L["Management"], createManageFrame, "Bid")
+OptionHouse:RegisterTab(L["Management"], createManageFrame)

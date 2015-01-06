@@ -6,7 +6,7 @@
 ## Notes-esES: Panel de control de addons y monitor de rendimiento
 ## Notes-esMX: Panel de control de addons y monitor de rendimiento
 
-## Author: Shadowed
+## Author: Shadowed, Phanx
 
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Slash: /oh, /opthouse, /optionhouse

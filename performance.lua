@@ -1,7 +1,7 @@
 local Performance = {}
 local OPTIONHOUSE, L = ...
 local frame, scriptProfiling
-local TOTAL_ROWS = 14
+local TOTAL_ROWS = 15
 
 local gsub, pairs, sort, strfind, strlower, tinsert
     = gsub, pairs, sort, strfind, strlower, tinsert
@@ -61,33 +61,26 @@ end
 
 local function updatePerformanceList()
 	if frame.totalMemory > 1024 then
-		frame.sortButtons.memory:SetFormattedText(L["Memory (|cffffffff%.1f MiB|r)"], frame.totalMemory / 1024)
+		frame.sortButtons.memory:SetFormattedText("|cffffffff%.1f MiB|r\n\n%s", frame.totalMemory / 1024, L["Memory"])
 	else
-		frame.sortButtons.memory:SetFormattedText(L["Memory (|cffffffff%.1f KiB|r)"], frame.totalMemory)
+		frame.sortButtons.memory:SetFormattedText("|cffffffff%.1f KiB|r\n\n%s", frame.totalMemory, L["Memory"])
 	end
 
 	if frame.totalMIR > 1024 then
-		frame.sortButtons.memsec:SetFormattedText(L["Mem/Sec (|cffffffff%.2f MiB/s|r)"], frame.totalMIR / 1024)
+		frame.sortButtons.memsec:SetFormattedText(L["|cffffffff%.2f MiB/s|r\n\nMem/Sec"], frame.totalMIR / 1024)
 	else
-		frame.sortButtons.memsec:SetFormattedText(L["Mem/Sec (|cffffffff%.2f KiB/s|r)"], frame.totalMIR)
+		frame.sortButtons.memsec:SetFormattedText(L["|cffffffff%.2f KiB/s|r\n\nMem/Sec"], frame.totalMIR)
 	end
-
-	frame.sortButtons.memory:SetWidth(frame.sortButtons.memory:GetFontString():GetStringWidth() + 3)
-	frame.sortButtons.memsec:SetWidth(frame.sortButtons.memsec:GetFontString():GetStringWidth() + 3)
 
 	if scriptProfiling then
 		if frame.totalCPU > 999999 then
-			frame.sortButtons.cpu:SetFormattedText(L["CPU (|cffffffff%.2fm|r)"], frame.totalCPU / 1000000)
+			frame.sortButtons.cpu:SetFormattedText("|cffffffff%.2fm|r\n\n%s", frame.totalCPU / 1000000, L["CPU"])
 		elseif frame.totalCPU > 9999 then
-			frame.sortButtons.cpu:SetFormattedText(L["CPU (|cffffffff%.2fk|r)"], frame.totalCPU / 1000)
+			frame.sortButtons.cpu:SetFormattedText("|cffffffff%.2fk|r\n\n%s", frame.totalCPU / 1000, L["CPU"])
 		else
-			frame.sortButtons.cpu:SetFormattedText(L["CPU (|cffffffff%d|r)"], frame.totalCPU)
+			frame.sortButtons.cpu:SetFormattedText("|cffffffff%d|r\n\n%s", frame.totalCPU, L["CPU"])
 		end
-
-		frame.sortButtons.cpusec:SetFormattedText(L["CPU/Sec (|cffffffff%.2f|r)"], frame.totalCIR)
-
-		frame.sortButtons.cpu:SetWidth(frame.sortButtons.cpu:GetFontString():GetStringWidth() + 3)
-		frame.sortButtons.cpusec:SetWidth(frame.sortButtons.cpusec:GetFontString():GetStringWidth() + 3)
+		frame.sortButtons.cpusec:SetFormattedText("|cffffffff%.2f|r\n\n%s", frame.totalCIR, L["CPU/Sec"])
 	end
 
 	sort(frame.addons, sortPerformanceList)
@@ -160,7 +153,7 @@ local function updateAddonPerfList()
 	frame.addons = {}
 	for i = 1, GetNumAddOns() do
 		local name, title = GetAddOnInfo(i)
-		if IsAddOnLoaded(i) and ((searchBy and strfind(strlower(name), searchBy)) or not searchBy ) then
+		if IsAddOnLoaded(i) and (not searchBy or strfind(strlower(name), searchBy)) then
 			tinsert(frame.addons, {
 				name = name,
 				title = gsub(title, "%|cff7fff7f %-(.+)%-%|r", ""),
@@ -182,39 +175,36 @@ local function createRows()
 		row:SetWidth(1)
 
 		row.title = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-		row.title:SetHeight(20)
-		row.title:SetWidth(175)
+		row.title:SetPoint("LEFT", row, "LEFT", 0, 0)
+		row.title:SetSize(225, 20)
 		row.title:SetJustifyH("LEFT")
-		row.title:SetJustifyV("CENTER")
-		row.title:SetPoint("LEFT", row, "LEFT", 3, 0)
 
 		row.memory = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-		row.memory:SetHeight(20)
-		row.memory:SetWidth(178)
-		row.memory:SetJustifyH("LEFT")
-		row.memory:SetJustifyV("CENTER")
 		row.memory:SetPoint("LEFT", row.title, "RIGHT", 3, 0)
+		row.memory:SetSize(175, 20)
+		row.memory:SetJustifyH("RIGHT")
 
 		row.memsec = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-		row.memsec:SetHeight(20)
-		row.memsec:SetWidth(166)
-		row.memsec:SetJustifyH("LEFT")
-		row.memsec:SetJustifyV("CENTER")
 		row.memsec:SetPoint("LEFT", row.memory, "RIGHT", 3, 0)
+		row.memsec:SetSize(145, 20)
+		row.memsec:SetJustifyH("RIGHT")
 
 		row.cpu = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-		row.cpu:SetHeight(20)
-		row.cpu:SetWidth(128)
-		row.cpu:SetJustifyH("LEFT")
-		row.cpu:SetJustifyV("CENTER")
 		row.cpu:SetPoint("LEFT", row.memsec, "RIGHT", 3, 0)
+		row.cpu:SetSize(125, 20)
+		row.cpu:SetJustifyH("RIGHT")
 
 		row.cpusec = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-		row.cpusec:SetHeight(20)
-		row.cpusec:SetWidth(70)
-		row.cpusec:SetJustifyH("LEFT")
-		row.cpusec:SetJustifyV("CENTER")
 		row.cpusec:SetPoint("LEFT", row.cpu, "RIGHT", 3, 0)
+		row.cpusec:SetSize(95, 20)
+		row.cpusec:SetJustifyH("RIGHT")
+
+		row:EnableMouse(true)
+		row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
+		row.highlight:SetAllPoints(true)
+		row.highlight:SetBlendMode("ADD")
+		row.highlight:SetTexture([[Interface\FriendsFrame\UI-FriendsFrame-HighlightBar-Blue]])
+		row.highlight:SetAlpha(0.5)
 
 		if id > 1 then
 			row:ClearAllPoints()
@@ -222,8 +212,8 @@ local function createRows()
 			row:SetPoint("TOPRIGHT", frame.rows[id - 1], "BOTTOMRIGHT", 0, 0)
 		else
 			row:ClearAllPoints()
-			row:SetPoint("TOPLEFT", frame, "TOPLEFT", 24, -96)
-			row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -46, 0)
+			row:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -88)
+			row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -35, -88)
 		end
 
 		frame.rows[id] = row
@@ -242,14 +232,16 @@ local function createPerfFrame(hide)
 
 	frame = CreateFrame("Frame", nil, OptionHouse.frame)
 	frame:SetAllPoints(OptionHouse.frame)
+	frame:Hide()
+
 	frame.sortOrder = nil
 	frame.sortType = "name"
 	frame.sortButtons = {}
+
 	frame:SetScript("OnShow", function(self)
 		updateAddonPerfList()
 		updateAddonPerformance()
 		updatePerformanceList()
-
 		self:RegisterEvent("ADDON_LOADED")
 	end)
 	frame:SetScript("OnHide", function(self)
@@ -257,13 +249,78 @@ local function createPerfFrame(hide)
 	end)
 	frame:SetScript("OnUpdate", performanceOnUpdate)
 	frame:SetScript("OnEvent", updatePerformanceList)
-	frame:Hide()
 
-	-- Button right buttons
+	-- Sort headers
+
+	local button = CreateFrame("Button", nil, frame)
+	button:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -68)
+	button:SetSize(225, 18)
+	button:SetFontString(button:CreateFontString(nil, "OVERLAY", "GameFontNormal"))
+	button:GetFontString():SetPoint("BOTTOMLEFT")
+	button:GetFontString():SetJustifyH("LEFT")
+	button:SetText(L["Name"])
+	button.sortType = "name"
+	button:SetScript("OnClick", sortPerfClick)
+	frame.sortButtons.title = button
+
+	local button = CreateFrame("Button", nil, frame)
+	button:SetPoint("LEFT", frame.sortButtons.title, "RIGHT", 3, 0)
+	button:SetSize(175, 18)
+	button:SetFontString(button:CreateFontString(nil, "OVERLAY", "GameFontNormal"))
+	button:GetFontString():SetPoint("BOTTOMRIGHT")
+	button:GetFontString():SetJustifyH("RIGHT")
+	button:SetText(L["Memory"])
+	button.sortType = "memory"
+	button:SetScript("OnClick", sortPerfClick)
+	frame.sortButtons.memory = button
+
+	local button = CreateFrame("Button", nil, frame)
+	button:SetPoint("LEFT", frame.sortButtons.memory, "RIGHT", 3, 0)
+	button:SetSize(145, 18)
+	button:SetFontString(button:CreateFontString(nil, "OVERLAY", "GameFontNormal"))
+	button:GetFontString():SetPoint("BOTTOMRIGHT")
+	button:GetFontString():SetJustifyH("RIGHT")
+	button:SetText(L["Mem/Sec"])
+	button.sortType = "mir"
+	button:SetScript("OnClick", sortPerfClick)
+	frame.sortButtons.memsec = button
+
+	local button = CreateFrame("Button", nil, frame)
+	button:SetPoint("LEFT", frame.sortButtons.memsec, "RIGHT", 3, 0)
+	button:SetSize(125, 18)
+	button:SetFontString(button:CreateFontString(nil, "OVERLAY", "GameFontNormal"))
+	button:GetFontString():SetPoint("BOTTOMRIGHT")
+	button:GetFontString():SetJustifyH("RIGHT")
+	button:SetText(L["CPU"])
+	button.sortType = "cpu"
+	button:SetScript("OnClick", sortPerfClick)
+	frame.sortButtons.cpu = button
+
+	local button = CreateFrame("Button", nil, frame)
+	button:SetPoint("LEFT", frame.sortButtons.cpu, "RIGHT", 3, 0)
+	button:SetSize(95, 18)
+	button:SetFontString(button:CreateFontString(nil, "OVERLAY", "GameFontNormal"))
+	button:GetFontString():SetPoint("BOTTOMRIGHT")
+	button:GetFontString():SetJustifyH("RIGHT")
+	button:SetText(L["CPU/Sec"])
+	button.sortType = "cir"
+	button:SetScript("OnClick", sortPerfClick)
+	frame.sortButtons.cpusec = button
+
+	createRows()
+
+	OptionHouse:CreateScrollFrame(frame, TOTAL_ROWS, updatePerformanceList)
+	OptionHouse:CreateSearchInput(frame, function()
+		updateAddonPerfList()
+		updateAddonPerformance()
+		updatePerformanceList()
+	end)
+
+	-- Buttons on bottom right
 	local toggleCPU = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	toggleCPU:SetWidth(80)
+	toggleCPU:SetWidth(120)
 	toggleCPU:SetHeight(22)
-	toggleCPU:SetPoint("BOTTOMRIGHT", OptionHouse.frame, "BOTTOMRIGHT", -8, 14)
+	toggleCPU:SetPoint("BOTTOMRIGHT", OptionHouse.frame, "BOTTOMRIGHT", -8, 4)
 	toggleCPU:SetScript("OnClick", function(self)
 		if GetCVar("scriptProfile") == "1" then
 			self:SetText(L["Enable CPU"])
@@ -282,88 +339,12 @@ local function createPerfFrame(hide)
 		toggleCPU:SetText(L["Enable CPU"])
 	end
 
-	local reloadUI = CreateFrame("Button", nil, frame, "UIPanelButtonGrayTemplate")
-	reloadUI:SetWidth(80)
+	local reloadUI = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate") -- UIPanelButtonGrayTemplate
+	reloadUI:SetWidth(120)
 	reloadUI:SetHeight(22)
-	reloadUI:SetPoint("RIGHT", toggleCPU, "LEFT")
+	reloadUI:SetPoint("RIGHT", toggleCPU, "LEFT", -2, 0)
 	reloadUI:SetText(L["Reload UI"])
 	reloadUI:SetScript("OnClick", ReloadUI)
-
-	local button = CreateFrame("Button", nil, frame)
-	button.sortType = "name"
-	button:SetScript("OnClick", sortPerfClick)
-	button:SetNormalFontObject(GameFontNormal)
-	button:SetText(L["Name"])
-	button:SetHeight(18)
-	button:SetWidth(button:GetFontString():GetStringWidth() + 3)
-	button:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, -75)
-	button:Show()
-
-	frame.sortButtons.title = button
-
-	local button = CreateFrame("Button", nil, frame)
-	button.sortType = "memory"
-	button:SetScript("OnClick", sortPerfClick)
-	button:SetNormalFontObject(GameFontNormal)
-	button:SetText(L["Memory"])
-	button:SetHeight(18)
-	button:SetWidth(button:GetFontString():GetStringWidth() + 3)
-	button:SetPoint("TOPLEFT", frame.sortButtons.title, "TOPLEFT", 180, 0)
-	button:Show()
-
-	frame.sortButtons.memory = button
-
-	local button = CreateFrame("Button", nil, frame)
-	button.sortType = "mir"
-	button:SetScript("OnClick", sortPerfClick)
-	button:SetNormalFontObject(GameFontNormal)
-	button:SetText(L["Mem/Sec"])
-	button:SetHeight(18)
-	button:SetWidth(button:GetFontString():GetStringWidth() + 3)
-	button:SetPoint("TOPLEFT", frame.sortButtons.memory, "TOPLEFT", 180, 0)
-	button:Show()
-
-	frame.sortButtons.memsec = button
-
-	local button = CreateFrame("Button", nil, frame)
-	button.sortType = "cpu"
-	button:SetScript("OnClick", sortPerfClick)
-	button:SetNormalFontObject(GameFontNormal)
-	button:SetText(L["CPU"])
-	button:SetHeight(18)
-	button:SetWidth(button:GetFontString():GetStringWidth() + 3)
-	button:SetPoint("TOPLEFT", frame.sortButtons.memsec, "TOPLEFT", 170, 0)
-	button:Show()
-
-	frame.sortButtons.cpu = button
-
-	local button = CreateFrame("Button", nil, frame)
-	button.sortType = "cir"
-	button:SetScript("OnClick", sortPerfClick)
-	button:SetNormalFontObject(GameFontNormal)
-	button:SetText(L["CPU/Sec"])
-	button:SetHeight(18)
-	button:SetWidth(button:GetFontString():GetStringWidth() + 3)
-	button:SetPoint("TOPLEFT", frame.sortButtons.cpu, "TOPLEFT", 130, 0)
-	button:Show()
-
-	frame.sortButtons.cpusec = button
-
-	-- Create all of the rows for display
-	createRows()
-
-	-- Scrolly
-	OptionHouse:CreateScrollFrame(frame, TOTAL_ROWS, updatePerformanceList)
-
-	frame.scroll:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, -76)
-	frame.scroll:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -35, 72)
-
-	-- Search on bottom left
-	OptionHouse:CreateSearchInput(frame, function()
-		updateAddonPerfList()
-		updateAddonPerformance()
-		updatePerformanceList()
-	end)
 end
 
 -- Load it into OH

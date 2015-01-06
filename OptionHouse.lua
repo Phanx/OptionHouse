@@ -1,7 +1,7 @@
 --[[
 	OptionHouse, by Shadow - Mal'Ganis (US)
-
 	Thanks Tekkub and Cladhaire for the original idea and some of the code... which I mutilated shortly thereafter!
+	This version further updated and modified by Phanx <addons@phanx.net>
 ]]
 
 local OPTIONHOUSE, L = ...
@@ -16,54 +16,16 @@ local tabFunctions = {}
 local openedByMenu
 
 -- TABS
-local function resizeTab(tab)
-	local textWidth = tab:GetFontString():GetWidth()
-
-	tab.middleActive:SetWidth(textWidth)
-	tab.middleInactive:SetWidth(textWidth)
-
-	tab:SetWidth((2 * tab.leftActive:GetWidth()) + textWidth)
-	tab.highlightTexture:SetWidth(textWidth + 20)
-end
-
-local function tabSelected(tab)
-	tab:GetFontString():SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
-	tab.highlightTexture:Hide()
-	tab:Disable()
-
-	tab.leftActive:Show()
-	tab.middleActive:Show()
-	tab.rightActive:Show()
-
-	tab.leftInactive:Hide()
-	tab.middleInactive:Hide()
-	tab.rightInactive:Hide()
-end
-
-local function tabDeselected(tab)
-	tab:GetFontString():SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
-	tab.highlightTexture:Show()
-	tab:Enable()
-
-	tab.leftInactive:Show()
-	tab.middleInactive:Show()
-	tab.rightInactive:Show()
-
-	tab.leftActive:Hide()
-	tab.middleActive:Hide()
-	tab.rightActive:Hide()
-end
-
 local function setTab(id)
 	local frame = OptionHouse.frame
 	if( not frame.tabs[id] ) then return end
 
 	if( frame.selectedTab ) then
-		tabDeselected(frame.tabs[frame.selectedTab])
+		PanelTemplates_DeselectTab(frame.tabs[frame.selectedTab])
 	end
 
 	frame.selectedTab = id
-	tabSelected(frame.tabs[id])
+	PanelTemplates_SelectTab(frame.tabs[id])
 end
 
 local function tabOnClick(self)
@@ -78,15 +40,6 @@ local function tabOnClick(self)
 			else
 				tab.handler[tab.func](tab.handler)
 			end
---[[
-			frame.topLeft:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-TopLeft")
-			frame.top:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-Top")
-			frame.topRight:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-TopRight")
-
-			frame.bottomLeft:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-BotLeft")
-			frame.bottom:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-Bot")
-			frame.bottomRight:SetTexture("Interface\\AuctionFrame\\UI-AuctionFrame-" .. tab.type .. "-BotRight")
-]]
 		elseif type(tab.func) == "function" then
 			tab.func(true)
 		else
@@ -102,65 +55,15 @@ function OptionHouse:CreateTab(text, id)
 
 	local tab = self.frame.tabs[id]
 	if not tab then
-		tab = CreateFrame("Button", nil, self.frame)
-		tab:SetHighlightFontObject(GameFontHighlightSmall)
-		tab:SetNormalFontObject(GameFontNormalSmall)
-		tab:SetHighlightTexture("Interface\\PaperDollInfoFrame\\UI-Character-Tab-Highlight")
-		tab:SetText(text)
-		tab:SetWidth(115)
-		tab:SetHeight(32)
-		tab:SetID(id)
-		tab:SetScript("OnClick", tabOnClick)
+		tab = CreateFrame("Button", "$parentTab"..id, self.frame, "CharacterFrameTabButtonTemplate")
 		tab:GetFontString():SetPoint("CENTER", 0, 2)
+		tab:UnregisterEvent("DISPLAY_SIZE_CHANGED")
+		tab:SetScript("OnEvent", nil)
 
-		tab.highlightTexture = tab:GetHighlightTexture()
-		tab.highlightTexture:ClearAllPoints()
-		tab.highlightTexture:SetPoint("CENTER", tab:GetFontString(), 0, 0)
-		tab.highlightTexture:SetBlendMode("ADD")
-
-		-- TAB SELECTED TEXTURES
-		tab.leftActive = tab:CreateTexture(nil, "ARTWORK")
-		tab.leftActive:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-ActiveTab")
-		tab.leftActive:SetHeight(32)
-		tab.leftActive:SetWidth(20)
-		tab.leftActive:SetPoint("TOPLEFT", tab, "TOPLEFT")
-		tab.leftActive:SetTexCoord(0, 0.15625, 0, 1.0)
-
-		tab.middleActive = tab:CreateTexture(nil, "ARTWORK")
-		tab.middleActive:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-ActiveTab")
-		tab.middleActive:SetHeight(32)
-		tab.middleActive:SetWidth(20)
-		tab.middleActive:SetPoint("LEFT", tab.leftActive, "RIGHT")
-		tab.middleActive:SetTexCoord(0.15625, 0.84375, 0, 1.0)
-
-		tab.rightActive = tab:CreateTexture(nil, "ARTWORK")
-		tab.rightActive:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-ActiveTab")
-		tab.rightActive:SetHeight(32)
-		tab.rightActive:SetWidth(20)
-		tab.rightActive:SetPoint("LEFT", tab.middleActive, "RIGHT")
-		tab.rightActive:SetTexCoord(0.84375, 1.0, 0, 1.0)
-
-		-- TAB DESELECTED TEXTURES
-		tab.leftInactive = tab:CreateTexture(nil, "ARTWORK")
-		tab.leftInactive:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-InActiveTab")
-		tab.leftInactive:SetHeight(32)
-		tab.leftInactive:SetWidth(20)
-		tab.leftInactive:SetPoint("TOPLEFT", tab, "TOPLEFT")
-		tab.leftInactive:SetTexCoord(0, 0.15625, 0, 1.0)
-
-		tab.middleInactive = tab:CreateTexture(nil, "ARTWORK")
-		tab.middleInactive:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-InActiveTab")
-		tab.middleInactive:SetHeight(32)
-		tab.middleInactive:SetWidth(20)
-		tab.middleInactive:SetPoint("LEFT", tab.leftInactive, "RIGHT")
-		tab.middleInactive:SetTexCoord(0.15625, 0.84375, 0, 1.0)
-
-		tab.rightInactive = tab:CreateTexture(nil, "ARTWORK")
-		tab.rightInactive:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-InActiveTab")
-		tab.rightInactive:SetHeight(32)
-		tab.rightInactive:SetWidth(20)
-		tab.rightInactive:SetPoint("LEFT", tab.middleInactive, "RIGHT")
-		tab.rightInactive:SetTexCoord(0.84375, 1.0, 0, 1.0)
+		tab:SetID(id)
+		tab:SetSize(115, 32)
+		tab:SetScript("OnClick", tabOnClick)
+		tab:SetScript("OnShow", function(tab) PanelTemplates_TabResize(tab, 10) end)
 
 		tinsert(self.frame.tabs, tab)
 	end
@@ -168,13 +71,13 @@ function OptionHouse:CreateTab(text, id)
 	tab:SetText(text)
 	tab:Show()
 
-	tabDeselected(tab)
-	resizeTab(tab)
+	PanelTemplates_DeselectTab(tab)
+	PanelTemplates_TabResize(tab, 0)
 
 	if id > 1 then
 		tab:SetPoint("TOPLEFT", self.frame.tabs[id - 1], "TOPRIGHT", -8, 0)
 	else
-		tab:SetPoint("TOPLEFT", self.frame, "BOTTOMLEFT", 15, 11)
+		tab:SetPoint("TOPLEFT", self.frame, "BOTTOMLEFT", 15, 0)
 	end
 end
 
@@ -264,75 +167,51 @@ function OptionHouse:CreateScrollFrame(frame, displayNum, onScroll)
 	frame:EnableMouseWheel(true)
 	frame:SetScript("OnMouseWheel", onParentMouseWheel)
 
-	frame.scroll = CreateFrame("ScrollFrame", nil, frame)
-	frame.scroll:EnableMouseWheel(true)
-	frame.scroll:SetWidth(16)
-	frame.scroll:SetHeight(270)
-	frame.scroll:SetScript("OnVerticalScroll", onVerticalScroll)
-	frame.scroll:SetScript("OnMouseWheel", onMouseWheel)
+	local scroll = CreateFrame("ScrollFrame", "$parentScrollFrame", frame, "UIPanelScrollFrameTemplate2")
+	scroll:SetPoint("TOPLEFT", 10, -65)
+	scroll:SetPoint("BOTTOMRIGHT", -31, 30)
+	
+	scroll:EnableMouseWheel(true)
+	scroll:SetWidth(16)
+	scroll:SetHeight(270)
+	scroll:SetScript("OnVerticalScroll", onVerticalScroll)
+	scroll:SetScript("OnMouseWheel", onMouseWheel)
+	-- TODO: do we really need custom scroll handlers?
 
-	frame.scroll.offset = 0
-	frame.scroll.displayNum = displayNum
-	frame.scroll.updateHandler = frame
-	frame.scroll.updateFunc = onScroll
+	scroll.offset = 0
+	scroll.displayNum = displayNum
+	scroll.updateHandler = frame
+	scroll.updateFunc = onScroll
 
-	-- Actual bar for scrolling
-	frame.scroll.bar = CreateFrame("Slider", nil, frame.scroll)
-	frame.scroll.bar:SetValueStep(frame.scroll.displayNum)
-	frame.scroll.bar:SetMinMaxValues(0, 0)
-	frame.scroll.bar:SetValue(0)
-	frame.scroll.bar:SetWidth(16)
-	frame.scroll.bar:SetScript("OnValueChanged", onValueChanged)
-	frame.scroll.bar:SetPoint("TOPLEFT", frame.scroll, "TOPRIGHT", 6, -16)
-	frame.scroll.bar:SetPoint("BOTTOMLEFT", frame.scroll, "BOTTOMRIGHT", 6, -16)
+	scroll.bar = scroll.ScrollBar
+	scroll.up = scroll.ScrollBar.ScrollUpButton
+	scroll.down = scroll.ScrollBar.ScrollDownButton
 
-	-- Up/Down buttons
-	frame.scroll.up = CreateFrame("Button", nil, frame.scroll.bar, "UIPanelScrollUpButtonTemplate")
-	frame.scroll.up:ClearAllPoints()
-	frame.scroll.up:SetPoint( "BOTTOM", frame.scroll.bar, "TOP" )
-	frame.scroll.up:SetScript("OnClick", scrollButtonUp)
+	scroll.barUpTexture = _G[scroll:GetName().."Top"]
+	scroll.barUpTexture:SetPoint("TOPLEFT", scroll.up, -6, 5)
+	scroll.barUpTexture:SetWidth(29)
 
-	frame.scroll.down = CreateFrame("Button", nil, frame.scroll.bar, "UIPanelScrollDownButtonTemplate")
-	frame.scroll.down:ClearAllPoints()
-	frame.scroll.down:SetPoint( "TOP", frame.scroll.bar, "BOTTOM" )
-	frame.scroll.down:SetScript("OnClick", scrollButtonDown)
+	scroll.barDownTexture = _G[scroll:GetName().."Bottom"]
+	scroll.barDownTexture:SetPoint("BOTTOMLEFT", scroll.down, -6, -2)
+	scroll.barDownTexture:SetWidth(29)
 
-	-- That square thingy that shows where the bar is
-	frame.scroll.bar:SetThumbTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
-
-	local thumb = frame.scroll.bar:GetThumbTexture()
-	thumb:SetHeight(16)
-	thumb:SetWidth(16)
-	thumb:SetTexCoord(0.25, 0.75, 0.25, 0.75)
-
-	-- Border graphic
-	frame.scroll.barUpTexture = frame.scroll:CreateTexture(nil, "BACKGROUND")
-	frame.scroll.barUpTexture:SetWidth(31)
-	frame.scroll.barUpTexture:SetHeight(256)
-	frame.scroll.barUpTexture:SetPoint("TOPLEFT", frame.scroll.up, "TOPLEFT", -7, 5)
-	frame.scroll.barUpTexture:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-ScrollBar")
-	frame.scroll.barUpTexture:SetTexCoord(0, 0.484375, 0, 1.0)
-
-	frame.scroll.barDownTexture = frame.scroll:CreateTexture(nil, "BACKGROUND")
-	frame.scroll.barDownTexture:SetWidth(31)
-	frame.scroll.barDownTexture:SetHeight(106)
-	frame.scroll.barDownTexture:SetPoint("BOTTOMLEFT", frame.scroll.down, "BOTTOMLEFT", -7, -3)
-	frame.scroll.barDownTexture:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-ScrollBar")
-	frame.scroll.barDownTexture:SetTexCoord(0.515625, 1.0, 0, 0.4140625)
+	frame.scroll = scroll
+	return scroll
 end
 
 -- SEARCH INPUT
 function OptionHouse:CreateSearchInput(frame, onChange)
-	local search = CreateFrame("EditBox", nil, frame, "SearchBoxTemplate")
-	search:SetPoint("CENTER", frame, "BOTTOMLEFT", 100, 25)
-	search:SetHeight(22) -- 19
-	search:SetWidth(155) -- 150
+	local search = CreateFrame("EditBox", "$parentSearchBox", frame, "SearchBoxTemplate")
+	search:SetPoint("BOTTOMLEFT", frame, 10, 3)
+	search:SetHeight(22)
+	search:SetWidth(160)
 	search:SetAutoFocus(false)
 	search:HookScript("OnTextChanged", onChange)
-	search.Left:SetTexture("")
-	search.Right:SetTexture("")
-	search.Middle:SetTexture("")
+	--search.Left:SetTexture("")
+	--search.Right:SetTexture("")
+	--search.Middle:SetTexture("")
 	frame.search = search
+	return search
 end
 
 -- Main container frame
@@ -414,8 +293,8 @@ function OptionHouse:CreateUI()
 	end
 end
 
-function OptionHouse:RegisterTab(text, func, type)
-	tinsert(tabFunctions, { func = func, text = text, type = type })
+function OptionHouse:RegisterTab(text, func)
+	tinsert(tabFunctions, { func = func, text = text })
 	-- Will create all of the tabs when the frame is created if needed
 	if not self.frame then return end
 	self:CreateTab(text, #(tabFunctions))
