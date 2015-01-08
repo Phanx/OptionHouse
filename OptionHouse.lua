@@ -57,6 +57,8 @@ function OptionHouse:CreateTab(text, id)
 	if not tab then
 		tab = CreateFrame("Button", "$parentTab"..id, self.frame, "CharacterFrameTabButtonTemplate")
 		tab:GetFontString():SetPoint("CENTER", 0, 2)
+		tab:GetHighlightTexture():SetPoint("TOPLEFT", -1, 4)
+		tab:GetHighlightTexture():SetPoint("BOTTOMRIGHT", 0, 0)
 		tab:UnregisterEvent("DISPLAY_SIZE_CHANGED")
 		tab:SetScript("OnEvent", nil)
 
@@ -77,7 +79,7 @@ function OptionHouse:CreateTab(text, id)
 	if id > 1 then
 		tab:SetPoint("TOPLEFT", self.frame.tabs[id - 1], "TOPRIGHT", -8, 0)
 	else
-		tab:SetPoint("TOPLEFT", self.frame, "BOTTOMLEFT", 15, 0)
+		tab:SetPoint("TOPLEFT", self.frame, "BOTTOMLEFT", 15, 1)
 	end
 end
 
