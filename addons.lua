@@ -260,7 +260,7 @@ local function saveAddonData(id, skipCheck)
 
 	local isLibrary
 	if isBlizzard then
-		title = gsub(name, "_", " ")
+		title = name:gsub("_", " "):gsub("(%l)(%u)", "%1 %2")
 	elseif strmatch(name, "^Lib[%u%W]") or strmatch(title, "^Lib[%u%W]") then
 		isLibrary = true
 	end
@@ -315,8 +315,9 @@ local function saveAddonData(id, skipCheck)
 	end
 
 	-- Strip out common version strings that are used sometimes
-	local version = GetAddOnMetadata(id, "Version") -- @Phanx: Fixed from "Version: %s" so it will actually get the metadata.
+	local version = GetAddOnMetadata(id, "Version")
 	if version then
+		version = gsub(version, "@project-r?e?v[ei]r?sion@", "Development")
 		version = gsub(version, "%$Revision: (%d+) %$", "r%1")
 		version = gsub(version, "%$Rev: (%d+) %$", "r%1")
 		version = gsub(version, "%$LastChangedRevision: (%d+) %$", "r%1")
@@ -327,7 +328,7 @@ local function saveAddonData(id, skipCheck)
 	if not title then
 		title = name
 	else
-		title = title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("%-(.+)%-", "")
+		title = title:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub(" %-(.+)%-", "")
 	end
 
 	-- Create the tooltip
