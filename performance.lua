@@ -6,6 +6,8 @@ local TOTAL_ROWS = 15
 local gsub, pairs, sort, strfind, strlower, tinsert
     = gsub, pairs, sort, strfind, strlower, tinsert
 
+local CURRENT_SELECTION
+
 local function sortPerformanceList(a, b)
 	if not b then
 		return false
@@ -90,6 +92,7 @@ local function updatePerformanceList()
 		local addon = frame.addons[frame.scroll.offset + id]
 		if addon then
 			row.title:SetText(addon.title)
+			row.highlight:SetDrawLayer(addon.title == CURRENT_SELECTION and "BACKGROUND" or "HIGHLIGHT")
 
 			if addon.memory > 1024 then
 				row.memory:SetFormattedText(L["%.3f MiB (%.2f%%)"], addon.memory / 1024, addon.memPerct)
@@ -169,6 +172,11 @@ end
 local function createRows()
 	frame.rows = {}
 
+	local function rowClick(self)
+		CURRENT_SELECTION = self.title:GetText()
+		updatePerformanceList()
+	end
+
 	for id = 1, TOTAL_ROWS do
 		local row = CreateFrame("Frame", nil, frame)
 		row:SetHeight(22)
@@ -199,12 +207,14 @@ local function createRows()
 		row.cpusec:SetSize(95, 20)
 		row.cpusec:SetJustifyH("RIGHT")
 
-		row:EnableMouse(true)
 		row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
 		row.highlight:SetAllPoints(true)
 		row.highlight:SetBlendMode("ADD")
 		row.highlight:SetTexture([[Interface\FriendsFrame\UI-FriendsFrame-HighlightBar-Blue]])
 		row.highlight:SetAlpha(0.5)
+
+		row:EnableMouse(true)
+		row:SetScript("OnMouseUp", rowClick)
 
 		if id > 1 then
 			row:ClearAllPoints()
