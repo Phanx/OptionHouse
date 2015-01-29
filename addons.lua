@@ -315,7 +315,7 @@ local function saveAddonData(id, skipCheck)
 	end
 
 	-- Strip out common version strings that are used sometimes
-	local version = GetAddOnMetadata(id, "Version")
+	local version = GetAddOnMetadata(id, "Version") or GetAddOnMetadata(id, "X-Curse-Packaged-Version")
 	if version then
 		version = gsub(version, "@project-r?e?v[ei]r?sion@", "Development")
 		version = gsub(version, "%$Revision: (%d+) %$", "r%1")
