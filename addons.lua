@@ -5,7 +5,7 @@ local CHARACTER = UnitName("player")
 
 local Manage = {}
 local dependencies, addons, addonStatus = {}, {}, {}
-local toggleForAll, showBlizzard, frame = false
+local toggleForAll, showBlizzard, showLibraries, frame
 
 OptionHouseProfiles = {}
 
@@ -89,6 +89,10 @@ local STATUS_COLORS = {
 local function sortManagementAddons(a, b)
 	if not b then
 		return false
+	elseif a.isLibrary and not b.isLibrary then
+		return false
+	elseif b.isLibrary and not a.isLibrary then
+		return true
 	elseif frame.sortOrder then
 		if frame.sortType == "name" or a[frame.sortType] == b[frame.sortType] then
 			return strlower(a.title) < strlower(b.title)
@@ -157,6 +161,8 @@ updateManageList = function()
 	-- and far easier for people to debug
 	for id, addon in pairs(addons) do
 		if addon.isBlizzard and not showBlizzard then
+			addons[id].hide = true
+		elseif addon.isLibrary and not showLibraries then
 			addons[id].hide = true
 		elseif searchBy and not strfind(strlower(addon.title), searchBy) then
 			addons[id].hide = true
@@ -275,7 +281,7 @@ local function saveAddonData(id, skipCheck)
 	local isLibrary
 	if isBlizzard then
 		title = name:gsub("_", " "):gsub("(%l)(%u)", "%1 %2")
-	elseif strmatch(name, "^Lib[%u%W]") or strmatch(title, "^Lib[%u%W]") then
+	elseif strmatch(name, "^Lib[%u%W]") or strmatch(title, "^Lib[%u%W]") or strfind(GetAddOnMetadata(id, "X-Category") or "", "Librar") then
 		isLibrary = true
 	end
 
@@ -636,10 +642,22 @@ local function createManageFrame(hide)
 	-- Show Blizzard addons
 	local showBlizz = CreateFrame("CheckButton", "$parentShowBlizz", frame, "InterfaceOptionsCheckButtonTemplate")
 	showBlizz:SetPoint("LEFT", frame.search, "RIGHT", 4, 0)
-	showBlizz.Text:SetText(L["Show Blizzard AddOns"])
-	showBlizz:SetHitRectInsets(0, -200, 0, 0)
+	showBlizz.Text:SetText(L["Blizzard"])
+	showBlizz.tooltipText = "Show the built-in Blizzard addons. Disabling them can be dangerous!"
+	showBlizz:SetHitRectInsets(0, -showBlizz.Text:GetStringWidth(), 0, 0)
 	showBlizz:SetScript("OnClick", function(self)
 		showBlizzard = self:GetChecked()
+		updateManageList()
+	end)
+
+	-- Show Blizzard addons
+	local showLibs = CreateFrame("CheckButton", "$parentShowLibs", frame, "InterfaceOptionsCheckButtonTemplate")
+	showLibs:SetPoint("LEFT", frame.search, "RIGHT", 160, 0)
+	showLibs.Text:SetText(L["Libraries"])
+	showLibs.tooltipText = "Show library addons. Usually there is no reason to disable these, since they are not loaded until an addon requests them."
+	showLibs:SetHitRectInsets(0, -showLibs.Text:GetStringWidth(), 0, 0)
+	showLibs:SetScript("OnClick", function(self)
+		showLibraries = self:GetChecked()
 		updateManageList()
 	end)
 
