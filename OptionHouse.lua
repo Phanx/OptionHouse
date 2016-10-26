@@ -221,7 +221,6 @@ function OptionHouse:CreateUI()
 	if self.frame then return end
 
 	local frame = CreateFrame("Frame", "OptionHouseFrame", UIParent, "ButtonFrameTemplate")
-	frame:CreateTitleRegion()
 	frame:EnableMouse(true) -- @Phanx: don't allow clickthrough
 	frame:SetMovable(true)
 	frame:SetClampedToScreen(true)
