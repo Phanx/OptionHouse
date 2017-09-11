@@ -156,13 +156,13 @@ end
 local function scrollButtonUp(self)
 	local parent = self:GetParent()
 	parent:SetValue(parent:GetValue() - (parent:GetHeight() / 2))
-	PlaySound("UChatScrollButton")
+	PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 end
 
 local function scrollButtonDown(self)
 	local parent = self:GetParent()
 	parent:SetValue(parent:GetValue() + (parent:GetHeight() / 2))
-	PlaySound("UChatScrollButton")
+	PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 end
 
 function OptionHouse:CreateScrollFrame(frame, displayNum, onScroll)
@@ -235,7 +235,7 @@ function OptionHouse:CreateUI()
 	frame:SetScript("OnHide", function()
 		if openedByMenu then
 			openedByMenu = nil
-			PlaySound("gsTitleOptionExit")
+			PlaySound(SOUNDKIT.GS_TITLE_OPTION_EXIT)
 			ShowUIPanel(GameMenuFrame)
 		end
 	end)
@@ -333,7 +333,7 @@ end
 
 GameMenuButtonAddons:SetScript("OnClick", function()
 	openedByMenu = true
-	PlaySound("igMainMenuOption")
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
 	HideUIPanel(GameMenuFrame)
 	OptionHouse:Open()
 end)

@@ -454,10 +454,10 @@ end
 local function toggleAddonStatus(self)
 	-- Addons disabled
 	if GetAddOnEnableState(CHARACTER, self.addon) > 0 then
-		PlaySound("igMainMenuOptionCheckBoxOff")
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
 		return deactivateAddon(self.addon)
 	end
-	PlaySound("igMainMenuOptionCheckBoxOn")
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 	activateAddon(self.addon)
 end
 
@@ -694,7 +694,7 @@ local function createManageFrame(hide)
 	forceLoad:SetChecked(not IsAddonVersionCheckEnabled())
 	forceLoad:SetScript("OnClick", function(self)
 		local on = self:GetChecked()
-		PlaySound(on and "igMainMenuOptionCheckBoxOn" or "igMainMenuOptionCheckBoxOff")
+		PlaySound(on and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
 		SetAddonVersionCheck(on)
 		updateManageList()
 	end)

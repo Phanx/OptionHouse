@@ -1,4 +1,4 @@
-## Interface: 70100
+## Interface: 70300
 
 ## Title: Option House |cff00ddbaMOD|r
 ## Notes: Addon control panel and performance monitor
