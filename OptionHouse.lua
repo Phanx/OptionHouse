@@ -85,43 +85,17 @@ end
 
 -- SCROLL FRAME
 local function onVerticalScroll(self, offset)
-	offset = ceil(offset)
-
-	self.bar:SetValue(offset)
 	self.offset = ceil(offset / self.displayNum)
 
 	if self.offset < 0 then
 		self.offset = 0
 	end
 
-	local min, max = self.bar:GetMinMaxValues()
-
-	if min == offset then
-		self.up:Disable()
-	else
-		self.up:Enable()
-	end
-
-	if max == offset then
-		self.down:Disable()
-	else
-		self.down:Enable()
-	end
-
 	self.updateFunc(self.updateHandler)
 end
 
-local function onMouseWheel(self, offset)
-	if self.scroll then self = self.scroll end
-	if offset > 0 then
-		self.bar:SetValue(self.bar:GetValue() - (self.bar:GetHeight() / 2))
-	else
-		self.bar:SetValue(self.bar:GetValue() + (self.bar:GetHeight() / 2))
-	end
-end
-
-local function onParentMouseWheel(self, offset)
-	onMouseWheel(self.scroll, offset)
+local function onParentMouseWheel(self, value)
+	ScrollFrameTemplate_OnMouseWheel(self.scroll, value, self.scroll.bar)
 end
 
 function OptionHouse:UpdateScroll(scroll, totalRows)
@@ -176,9 +150,7 @@ function OptionHouse:CreateScrollFrame(frame, displayNum, onScroll)
 	scroll:EnableMouseWheel(true)
 	scroll:SetWidth(16)
 	scroll:SetHeight(270)
-	scroll:SetScript("OnVerticalScroll", onVerticalScroll)
-	scroll:SetScript("OnMouseWheel", onMouseWheel)
-	-- TODO: do we really need custom scroll handlers?
+	scroll:HookScript("OnVerticalScroll", onVerticalScroll)
 
 	scroll.offset = 0
 	scroll.displayNum = displayNum
